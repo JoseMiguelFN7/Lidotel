@@ -1,6 +1,6 @@
 program Lidotel;
 {$codepage UTF8} //Permite usar acentos y ñ en consola.
-uses crt;
+uses crt, sysutils;
 type
     habitacion = record
         nombre: string;
@@ -28,7 +28,7 @@ type
 var
 i: integer;
 op: char;
-
+archivoIndividual, archivoAcompanado, archivoGF: Text;
 clientesEnSesion: array of cliente;
 ninosEnSesion: array of nino;
 
@@ -43,7 +43,7 @@ const
 
 function seleccionarTHab(): habitacion;
 var
-opp1, opp2: char;
+opp1, opp2: string;
 begin
     repeat
         writeln('Por favor, indique el tipo de habitacion:');
@@ -68,33 +68,33 @@ begin
             else begin
                 writeln('Opcion no valida.');
             end;
-            if (opp1 in ['1','2','3','4']) then
-            begin
-                //mostrar info entipoHab[ord(pp1)];
-                repeat
-                    writeln('Desea confirmar su seleccion? (S/N)');
-                    opp2:=readkey;
-                    case (opp2) of
-                        's', 'S': begin
-                            writeln('Habitacion confirmada exitosamente.');
-                            seleccionarTHab:=tipoHab[ord(opp1)];
-                        end;
-                        'n', 'N': begin
-                            writeln('Seleccion cancelada.');
-                        end
-                        else begin
-                            writeln('Opcion no valida.');
-                        end;
-                    end;
-                until (opp2 in ['s', 'S', 'n', 'N']);
-            end;
         end;
-    until (opp1 in ['1','2','3','4']) and (opp2 in ['s', 'S']);
+        if (opp1[1] in ['1','2','3','4']) then
+        begin
+            //mostrar info entipoHab[StrToInt(pp1)];
+            repeat
+                writeln('Desea confirmar su seleccion? (S/N)');
+                opp2:=readkey;
+                case (opp2) of
+                    's', 'S': begin
+                        writeln('Habitacion confirmada exitosamente.');
+                        seleccionarTHab:=tipoHab[StrToInt(opp1)];
+                    end;
+                    'n', 'N': begin
+                        writeln('Seleccion cancelada.');
+                    end
+                    else begin
+                        writeln('Opcion no valida.');
+                    end;
+                end;
+            until (opp2[1] in ['s', 'S', 'n', 'N']);
+        end;
+    until (opp1[1] in ['1','2','3','4']) and (opp2[1] in ['s', 'S']);
 end;
 
 procedure nuevaReservacion();
 var
-opp: char;
+opp: string;
 nAdultos, nNinos, dEstadia, age: integer;
 habSelec: habitacion;
 nom, ape, cedula, correo, tel: string;
@@ -126,7 +126,7 @@ begin
               writeln('Opcion no valida.');
             end;
         end;
-        if(opp in ['1', '2', '3']) then
+        if(opp[1] in ['1', '2', '3']) then
         begin
             habSelec:=seleccionarTHab();
             write('Ingrese los dias de estadia');
@@ -135,7 +135,7 @@ begin
             begin
                 with clientesEnSesion[i] do
                 begin
-                    tReservacion:=tReservaciones[ord(opp)];
+                    tReservacion:=tReservaciones[StrToInt(opp)];
                     tHabitacion:=habSelec;
                     diasEstadia:=dEstadia;
                 end;
@@ -144,13 +144,13 @@ begin
             begin
                 with ninosEnSesion[i] do
                 begin
-                    tReservacion:=tReservaciones[ord(opp)];
+                    tReservacion:=tReservaciones[StrToInt(opp)];
                     tHabitacion:=habSelec;
                     diasEstadia:=dEstadia;
                 end;
             end;
         end;
-    until (opp in ['1', '2', '3']);
+    until (opp[1] in ['1', '2', '3']);
     for i:=0 to length(clientesEnSesion)-1 do
     begin
         write('Ingrese el nombre del adulto ', i+1, ':');
@@ -187,6 +187,48 @@ begin
             edad:=age;
         end;
     end;
+    //mostrar info de la reserva.
+end;
+
+procedure almacenarEnArchivo(var archivo: Text; nombreArchivo: string);
+begin
+    if(FileExists(nombreArchivo)) then
+    begin
+        append(archivo);
+    end
+    else begin
+        assign(archivo, nombreArchivo);
+        rewrite(archivo);
+    end;
+    for i:=0 to length(clientesEnSesion)-1 do
+    begin
+        with clientesEnSesion[i] do
+        begin
+            writeLn(archivo, 'Nombre: ', nombre, '.');
+            writeLn(archivo, 'Apellido: ', apellido, '.');
+            writeLn(archivo, 'Cedula: ', ci, '.');
+            writeLn(archivo, 'E-mail: ', email, '.');
+            writeLn(archivo, 'Telefono: ', telefono, '.');
+            writeLn(archivo, 'Reservacion: ', tReservacion, '.');
+            writeLn(archivo, 'Habitacion: ', tHabitacion.nombre);
+            writeLn(archivo, 'Dias de estadia: ', diasEstadia, '.');
+        end;
+        writeLn(archivo, '----------------------------------------------------------------------------------');
+    end;
+    for i:=0 to length(ninosEnSesion)-1 do
+    begin
+        with ninosEnSesion[i] do
+        begin
+            writeLn(archivo, 'Nombre: ', nombre, '.');
+            writeLn(archivo, 'Apellido: ', apellido, '.');
+            writeLn(archivo, 'Edad: ', edad, '.');
+            writeLn(archivo, 'Reservacion: ', tReservacion, '.');
+            writeLn(archivo, 'Habitacion: ', tHabitacion.nombre);
+            writeLn(archivo, 'Dias de estadia: ', diasEstadia, '.');
+        end;
+        writeLn(archivo, '----------------------------------------------------------------------------------');
+    end;
+    close(archivo);
 end;
 
 begin
@@ -204,6 +246,7 @@ begin
         case(op) of
             '1': begin
                 nuevaReservacion();
+                almacenarEnArchivo(archivoIndividual, 'Reservas Individuales.txt');
             end;
             '2': begin
                 readkey;
