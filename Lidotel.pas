@@ -135,7 +135,7 @@ begin
             begin
                 with clientesEnSesion[i] do
                 begin
-                    Reservacion:=tReservaciones[ord(opp)];
+                    tReservacion:=tReservaciones[ord(opp)];
                     tHabitacion:=habSelec;
                     diasEstadia:=dEstadia;
                 end;
@@ -144,7 +144,7 @@ begin
             begin
                 with ninosEnSesion[i] do
                 begin
-                    Reservacion:=tReservaciones[ord(opp)];
+                    tReservacion:=tReservaciones[ord(opp)];
                     tHabitacion:=habSelec;
                     diasEstadia:=dEstadia;
                 end;
@@ -172,7 +172,7 @@ begin
             telefono:=tel;
         end;
     end;
-    for i:=0 to length(clientesEnSesion)-1 do
+    for i:=0 to length(ninosEnSesion)-1 do
     begin
         write('Ingrese el nombre del niño ', i+1, ':');
         readln(nom);
@@ -180,7 +180,7 @@ begin
         readln(ape);
         write('Ingrese la edad del niño ', i+1, ':');
         readln(age);
-        with clientesEnSesion[i] do
+        with ninosEnSesion[i] do
         begin
             nombre:=nom;
             apellido:=ape;
@@ -201,7 +201,6 @@ begin
         writeln('3. Modificar reservacion.');
         writeln('4. Salir.');
         op:=readkey;
-        nuevoRegistro();
         case(op) of
             '1': begin
                 nuevaReservacion();
