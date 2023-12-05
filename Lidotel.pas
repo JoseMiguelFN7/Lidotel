@@ -42,12 +42,13 @@ const
        (nombre: 'Suite'; precio: 300));
 
 var
-i, IDSelInt: integer;
+IDSelInt: integer;
 op1, op2: string;
 archivoIndividual, archivoAcompanado, archivoGF, archivoSel: Text;
 reservacionActual: reservacion;
 tResSel, IDSel: string;
 a: reservacion;
+resIndSis, resAcoSis, resGFSis: array of reservacion;
 
 function determinarId(var archivo: Text; nombreArchivo: string): integer;
 var
@@ -57,6 +58,7 @@ begin
     idmax:=0;
     if(FileExists(nombreArchivo)) then
     begin
+        assign(archivo, nombreArchivo);
         reset(archivo);
         while not (eof(archivo)) do
         begin
@@ -71,14 +73,20 @@ begin
         end;
     end;
     determinarId:=idmax+1;
+    close(archivo);
 end;
 
-function idMasAlto(var archivo: Text; nombreArchivo: string): integer;
+{function idMasAlto(var archivo: Text; nombreArchivo: string): integer;
 begin
-    idMasAlto:=determinarId(archivo, nombreArchivo)-1;
-end;
+    if(FileExists(nombreArchivo)) then
+    begin
+        reset(archivo);
+        idMasAlto:=determinarId(archivo, nombreArchivo)-1;
+    end;
+end;}
 
 procedure almacenarEnArchivo(var archivo: Text; nombreArchivo: string; res: reservacion);
+var i: integer;
 begin
     if(FileExists(nombreArchivo)) then
     begin
@@ -176,9 +184,8 @@ end;
 procedure nuevaReservacion(var res: reservacion);
 var
 opp: string;
-nAdultos, nNinos, dEstadia, age: integer;
+nAdultos, nNinos, dEstadia, age, i: integer;
 nom, ape, cedula, correo, tel: string;
-
 begin
     repeat
         writeln('Por favor, indique el tipo de reservacion:');
@@ -310,8 +317,6 @@ begin
     nNinoActual:=0;
     assign(archivo, nombreArchivo);
     reset(archivo);
-    writeln('.');
-    readkey;
     while not eof(archivo) do
     begin
         readLn(archivo, linea);
@@ -420,37 +425,53 @@ begin
     close(archivo);
 end;
 
-{procedure buscarReservacion(var archivo: Text; nombreArchivo: string; ID: integer);
-var
-linea: String;
-mostrar: boolean;
+procedure cargarArchivos();
+var idmax, i: integer;
 begin
-    mostrar:=false;
-    if(FileExists(nombreArchivo)) then
+    idmax:=determinarId(archivoIndividual, 'Reservas Individual.txt')-1;
+    writeln('.');
+    readkey;
+    for i:=0 to idmax do
     begin
-        reset(archivo);
-        while not (eof(archivo)) do
+        if(existeReservacion(archivoIndividual, 'Reservas Individual.txt', i)) then
         begin
-            readLn(archivo, linea);
-            if (linea=('ID: ', ID)) then ////ERROR ACA??????
-            begin
-                mostrar:=true;
-                writeln('Datos de la reserva:');
-            end;
-            if(mostrar) then
-            begin
-                if(linea='----------------------------------------------------------------------------------') then
-                begin
-                    exit;
-                end;
-                writeLn(linea);
-            end;
+            setLength(resIndSis, length(resIndSis)+1);
+            resIndSis[length(resIndSis)-1]:=getReservacion(archivoIndividual, 'Reservas Individual.txt', i);
         end;
-        writeln('No se consiguio ninguna reserva con esa ID');
     end;
-end;}
+    idmax:=determinarId(archivoAcompanado, 'Reservas Acompañado.txt')-1;
+    for i:=0 to idmax do
+    begin
+        if(existeReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i)) then
+        begin
+            setLength(resAcoSis, length(resAcoSis)+1);
+            resAcoSis[length(resAcoSis)-1]:=getReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i);
+        end;
+    end;
+    idmax:=determinarId(archivoGF, 'Reservas Grupo-Familia.txt')-1;
+    for i:=0 to idmax do
+    begin
+        if(existeReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i)) then
+        begin
+            setLength(resGFSis, length(resGFSis)+1);
+            resGFSis[length(resGFSis)-1]:=getReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i);
+        end;
+    end;
+end;
 
+//MAIN
 begin
+    cargarArchivos();
+    writeln('.');
+    readkey;
+    a:=resAcoSis[0];
+    writeln(a.id);
+    writeln(a.tReservacion);
+    writeln(a.tHabitacion.nombre);
+    writeln(a.diasEstadia);
+    writeln(a.precioTotal);
+    writeln(a.clientesEnSesion[0].nombre);
+    readkey;
     //clrscr;
     writeln('Bienvenido al sistema del Hotel Lidotel Boutique Margarita!');
     writeln('Presione cualquier tecla para continuar...');
@@ -502,6 +523,7 @@ begin
                 writeln(a.precioTotal);
                 writeln(a.clientesEnSesion[0].nombre);
                 readkey;
+                //mostrar la info de la reserva.
             end;
             '3': begin
                 readkey;
