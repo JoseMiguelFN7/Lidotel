@@ -14,7 +14,7 @@ type
     cliente = record
         nombre: string;
         apellido: string;
-        ci: string;
+        documento: string;
         email: string;
         telefono: string;
     end;
@@ -44,12 +44,11 @@ const
 var
 IDSelInt: integer;
 op1, op2: string;
-archivoIndividual, archivoAcompanado, archivoGF, archivoSel: Text;
+archivoIndividual, archivoAcompanado, archivoGF: Text;
 reservacionActual: reservacion;
 tResSel, IDSel: string;
+resIndSis, resAcoSis, resGFSis, resSel: array of reservacion;
 a: reservacion;
-resIndSis, resAcoSis, resGFSis: array of reservacion;
-
 function determinarId(var archivo: Text; nombreArchivo: string): integer;
 var
 linea: string;
@@ -71,63 +70,9 @@ begin
                 end;
             end;
         end;
+        close(archivo);
     end;
     determinarId:=idmax+1;
-    close(archivo);
-end;
-
-{function idMasAlto(var archivo: Text; nombreArchivo: string): integer;
-begin
-    if(FileExists(nombreArchivo)) then
-    begin
-        reset(archivo);
-        idMasAlto:=determinarId(archivo, nombreArchivo)-1;
-    end;
-end;}
-
-procedure almacenarEnArchivo(var archivo: Text; nombreArchivo: string; res: reservacion);
-var i: integer;
-begin
-    if(FileExists(nombreArchivo)) then
-    begin
-        append(archivo);
-    end
-    else begin
-        assign(archivo, nombreArchivo);
-        rewrite(archivo);
-    end;
-    writeLn(archivo, 'Datos de la reserva:');
-    writeLn(archivo, 'ID: ', res.id);
-    writeLn(archivo, 'Tipo de reserva: ', res.tReservacion);
-    writeLn(archivo, 'Tipo de habitacion: ', res.tHabitacion.nombre);
-    writeLn(archivo, 'Dias de estadia: ', res.diasEstadia);
-    writeLn(archivo, 'Precio total: ', (res.precioTotal):0:2, '$');
-    writeLn(archivo, 'Informacion de clientes:');
-    for i:=0 to length(res.clientesEnSesion)-1 do
-    begin
-        writeLn(archivo, 'Adulto ', i+1, ':');
-        with res.clientesEnSesion[i] do
-        begin
-            writeLn(archivo, '   Nombre: ', nombre);
-            writeLn(archivo, '   Apellido: ', apellido);
-            writeLn(archivo, '   Cedula: ', ci);
-            writeLn(archivo, '   E-mail: ', email);
-            writeLn(archivo, '   Telefono: ', telefono);
-            
-        end;
-    end;
-    for i:=0 to length(res.ninosEnSesion)-1 do
-    begin
-        writeLn(archivo, 'Niño ', i+1, ':');
-        with res.ninosEnSesion[i] do
-        begin
-            writeLn(archivo, '   Nombre: ', nombre);
-            writeLn(archivo, '   Apellido: ', apellido);
-            writeLn(archivo, '   Edad: ', edad);
-        end;
-    end;
-    writeLn(archivo, '----------------------------------------------------------------------------------');
-    close(archivo);
 end;
 
 function seleccionarTHab(): habitacion;
@@ -181,11 +126,55 @@ begin
     until (opp1[1] in ['1','2','3','4']) and (opp2[1] in ['s', 'S']);
 end;
 
+procedure actualizarArchivo(var archivo: Text; nombreArchivo: string; reservaciones: array of reservacion);
+var i, j: integer;
+begin
+    assign(archivo, nombreArchivo);
+    if(FileExists(nombreArchivo)) then
+    begin
+        rewrite(archivo);
+        for i:=0 to length(reservaciones)-1 do
+        begin
+            writeLn(archivo, 'Datos de la reserva:');
+            writeLn(archivo, 'ID: ', reservaciones[i].id);
+            writeLn(archivo, 'Tipo de reserva: ', reservaciones[i].tReservacion);
+            writeLn(archivo, 'Tipo de habitacion: ', reservaciones[i].tHabitacion.nombre);
+            writeLn(archivo, 'Dias de estadia: ', reservaciones[i].diasEstadia);
+            writeLn(archivo, 'Precio total: ', (reservaciones[i].precioTotal):0:2, '$');
+            writeLn(archivo, 'Informacion de clientes:');
+            for j:=0 to length(reservaciones[i].clientesEnSesion)-1 do
+            begin
+                writeLn(archivo, 'Adulto ', j+1, ':');
+                with reservaciones[i].clientesEnSesion[j] do
+                begin
+                    writeLn(archivo, '   Nombre: ', nombre);
+                    writeLn(archivo, '   Apellido: ', apellido);
+                    writeLn(archivo, '   Documento: ', documento);
+                    writeLn(archivo, '   E-mail: ', email);
+                    writeLn(archivo, '   Telefono: ', telefono);
+                end;
+            end;
+            for j:=0 to length(reservaciones[i].ninosEnSesion)-1 do
+            begin
+                writeLn(archivo, 'Niño ', j+1, ':');
+                with reservaciones[i].ninosEnSesion[j] do
+                begin
+                    writeLn(archivo, '   Nombre: ', nombre);
+                    writeLn(archivo, '   Apellido: ', apellido);
+                    writeLn(archivo, '   Edad: ', edad);
+                end;
+            end;
+            writeLn(archivo, '----------------------------------------------------------------------------------');
+        end;
+    end;
+    close(archivo);
+end;
+
 procedure nuevaReservacion(var res: reservacion);
 var
 opp: string;
 nAdultos, nNinos, dEstadia, age, i: integer;
-nom, ape, cedula, correo, tel: string;
+nom, ape, tDoc, doc, correo, tel: string;
 begin
     repeat
         writeln('Por favor, indique el tipo de reservacion:');
@@ -236,8 +225,10 @@ begin
         readln(nom);
         write('Ingrese el apellido del adulto ', i+1, ':');
         readln(ape);
-        write('Ingrese la cedula del adulto ', i+1, ':');
-        readln(cedula);
+        write('Ingrese el tipo de documento del adulto ' , i+1, ' (V/E/J/G/P): ');
+        readln(tDoc);
+        write('Ingrese el numero de documento del adulto ', i+1, ':');
+        readln(doc);
         write('Ingrese el correo del adulto ', i+1, ':');
         readln(correo);
         write('Ingrese el telefono del adulto ', i+1, ':');
@@ -246,7 +237,7 @@ begin
         begin
             nombre:=nom;
             apellido:=ape;
-            ci:=cedula;
+            documento:=tDoc+doc;
             email:=correo;
             telefono:=tel;
         end;
@@ -267,15 +258,24 @@ begin
         end;
     end;
     //mostrar info de la reserva.
-    case (opp) of
+    case (opp) of //resIndSis, resAcoSis, resGFSis
         '1': begin
-            almacenarEnArchivo(archivoIndividual, 'Reservas Individual.txt', res);
+            //almacenarEnArchivo(archivoIndividual, 'Reservas Individual.txt', res);
+            setLength(resIndSis, length(resIndSis)+1);
+            resIndSis[length(resIndSis)-1]:=res;
+            actualizarArchivo(archivoIndividual, 'Reservas Individual.txt', resIndSis);
         end;
         '2': begin
-            almacenarEnArchivo(archivoAcompanado, 'Reservas Acompañado.txt', res);
+            //almacenarEnArchivo(archivoAcompanado, 'Reservas Acompañado.txt', res);
+            setLength(resAcoSis, length(resAcoSis)+1);
+            resAcoSis[length(resAcoSis)-1]:=res;
+            actualizarArchivo(archivoAcompanado, 'Reservas Acompañado.txt', resAcoSis);
         end;
         '3': begin
-            almacenarEnArchivo(archivoGF, 'Reservas Grupo-Familia.txt', res);
+            //almacenarEnArchivo(archivoGF, 'Reservas Grupo-Familia.txt', res);
+            setLength(resGFSis, length(resGFSis)+1);
+            resGFSis[length(resGFSis)-1]:=res;
+            actualizarArchivo(archivoGF, 'Reservas Grupo-Familia.txt', resGFSis);
         end;
     end;
 end;
@@ -293,15 +293,16 @@ begin
             if (linea=('ID: ' + IntToStr(ID))) then
             begin
                 existeReservacion:=true;
+                close(archivo);
                 exit;
             end;
         end;
         existeReservacion:=false;
+        close(archivo);
     end
     else begin
         existeReservacion:=false;
     end;
-    close(archivo);
 end;
 
 function getReservacion(var archivo: Text; nombreArchivo: string; ID: integer): reservacion;
@@ -380,9 +381,9 @@ begin
                 begin
                     getReservacion.clientesEnSesion[nAdultoActual-1].apellido:=Copy(linea, 14, length(linea));
                 end;
-                if (Copy(linea, 1, 10)='   Cedula:') then
+                if (Copy(linea, 1, 13)='   Documento:') then
                 begin
-                    getReservacion.clientesEnSesion[nAdultoActual-1].ci:=Copy(linea, 12, length(linea));
+                    getReservacion.clientesEnSesion[nAdultoActual-1].documento:=Copy(linea, 15, length(linea));
                 end;
                 if (Copy(linea, 1, 10)='   E-mail:') then
                 begin
@@ -420,6 +421,11 @@ begin
                     getReservacion.ninosEnSesion[nNinoActual-1].apellido:=Copy(linea, 10, length(linea));
                 end;
             end;
+            if(linea='----------------------------------------------------------------------------------') then
+            begin
+                close(archivo);
+                exit;
+            end;
         end;
     end;
     close(archivo);
@@ -428,50 +434,183 @@ end;
 procedure cargarArchivos();
 var idmax, i: integer;
 begin
-    idmax:=determinarId(archivoIndividual, 'Reservas Individual.txt')-1;
-    writeln('.');
-    readkey;
-    for i:=0 to idmax do
+    if(FileExists('Reservas Individual.txt')) then
     begin
-        if(existeReservacion(archivoIndividual, 'Reservas Individual.txt', i)) then
+        idmax:=determinarId(archivoIndividual, 'Reservas Individual.txt')-1;
+        for i:=0 to idmax do
         begin
-            setLength(resIndSis, length(resIndSis)+1);
-            resIndSis[length(resIndSis)-1]:=getReservacion(archivoIndividual, 'Reservas Individual.txt', i);
+            if(existeReservacion(archivoIndividual, 'Reservas Individual.txt', i)) then
+            begin
+                setLength(resIndSis, length(resIndSis)+1);
+                resIndSis[length(resIndSis)-1]:=getReservacion(archivoIndividual, 'Reservas Individual.txt', i);
+            end;
         end;
     end;
-    idmax:=determinarId(archivoAcompanado, 'Reservas Acompañado.txt')-1;
-    for i:=0 to idmax do
+    if (FileExists('Reservas Acompañado.txt')) then
     begin
-        if(existeReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i)) then
+        idmax:=determinarId(archivoAcompanado, 'Reservas Acompañado.txt')-1;
+        for i:=0 to idmax do
         begin
-            setLength(resAcoSis, length(resAcoSis)+1);
-            resAcoSis[length(resAcoSis)-1]:=getReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i);
+            if(existeReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i)) then
+            begin
+                setLength(resAcoSis, length(resAcoSis)+1);
+                resAcoSis[length(resAcoSis)-1]:=getReservacion(archivoAcompanado, 'Reservas Acompañado.txt', i);
+            end;
         end;
     end;
-    idmax:=determinarId(archivoGF, 'Reservas Grupo-Familia.txt')-1;
-    for i:=0 to idmax do
+    if (FileExists('Reservas Grupo-Familia.txt')) then
     begin
-        if(existeReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i)) then
+        idmax:=determinarId(archivoGF, 'Reservas Grupo-Familia.txt')-1;
+        for i:=0 to idmax do
         begin
-            setLength(resGFSis, length(resGFSis)+1);
-            resGFSis[length(resGFSis)-1]:=getReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i);
+            if(existeReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i)) then
+            begin
+                setLength(resGFSis, length(resGFSis)+1);
+                resGFSis[length(resGFSis)-1]:=getReservacion(archivoGF, 'Reservas Grupo-Familia.txt', i);
+            end;
         end;
     end;
 end;
 
-//MAIN
+procedure mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer);
+var j: integer;
 begin
+    writeLn('Datos de la reserva:');
+    with reservaciones[pos] do
+    begin
+        writeLn('ID: ', id);
+        writeLn('Tipo de reserva: ', tReservacion);
+        writeLn('Tipo de habitacion: ', tHabitacion.nombre);
+        writeLn('Dias de estadia: ', diasEstadia);
+        writeLn('Precio total: ', (precioTotal):0:2, '$');
+    end;
+    writeln('Para ver la informacion de los clientes, presione cualquier tecla...');
+    readkey;
+    clrscr;
+    writeLn('Informacion de clientes:');
+    for j:=0 to length(reservaciones[pos].clientesEnSesion)-1 do
+    begin
+        writeLn('Adulto ', j+1, ':');
+        with reservaciones[pos].clientesEnSesion[j] do
+        begin
+            writeLn('   Nombre: ', nombre);
+            writeLn('   Apellido: ', apellido);
+            writeLn('   Documento: ', documento);
+            writeLn('   E-mail: ', email);
+            writeLn('   Telefono: ', telefono);
+        end;
+        if((j<length(reservaciones[pos].clientesEnSesion)-1) or (length(reservaciones[pos].ninosEnSesion)>0)) then
+        begin
+            writeln('Para ver la informacion de la siguiente persona, presione cualquier tecla...');
+            readkey;
+            clrscr;
+        end;
+    end;
+    for j:=0 to length(reservaciones[pos].ninosEnSesion)-1 do
+    begin
+        writeLn('Niño ', j+1, ':');
+        with reservaciones[pos].ninosEnSesion[j] do
+        begin
+            writeLn('   Nombre: ', nombre);
+            writeLn('   Apellido: ', apellido);
+            writeLn('   Edad: ', edad);
+        end;
+        if(j<length(reservaciones[pos].ninosEnSesion)-1) then
+        begin
+            writeln('Para ver la informacion de la siguiente persona, presione cualquier tecla...');
+            readkey;
+            clrscr;
+        end;
+    end;
+end;
+
+procedure buscarReservacion(reservaciones: array of reservacion; ID: integer);
+var
+i, posActual: integer;
+opp: string;
+salir, mostrar: boolean;
+begin
+    if(length(reservaciones)>0) then
+    begin
+        for i:=0 to length(reservaciones)-1 do
+        begin
+            if (reservaciones[i].id=ID) then
+            begin
+                posActual:=i;
+                mostrarDatosReservacion(reservaciones, posActual);
+                salir:=false;
+                repeat
+                    writeln('Indique la reservacion que desea ver ahora:');
+                    writeln('0. Salir al menu.     1. Anterior.     2. Siguiente.');
+                    opp:=readkey;
+                    case (opp) of
+                        '0': begin
+                            salir:=true;
+                            mostrar:=false;
+                        end;
+                        '1': begin
+                            if(posActual=0) then
+                            begin
+                                writeln('No existe una reservacion anterior.');
+                                mostrar:=false;
+                            end
+                            else begin
+                                posActual-=1;
+                                mostrar:=true;
+                            end;
+                        end;
+                        '2': begin
+                            if(posActual=(length(reservaciones)-1)) then
+                            begin
+                                writeln('No existe una reservacion siguiente.');
+                                mostrar:=false;
+                            end
+                            else begin
+                                posActual+=1;
+                                mostrar:=true;
+                            end;
+                        end
+                        else begin
+                            writeln('Dato no valido.');
+                            mostrar:=false;
+                        end;
+                    end;
+                    if (mostrar) then
+                    begin
+                        mostrarDatosReservacion(reservaciones, posActual);
+                    end;
+                until salir;
+                exit;
+            end;
+        end;
+        writeln('No se ha conseguido ninguna reserva con esa ID.');
+    end
+    else begin
+        writeln('No se ha conseguido ninguna reserva con esa ID.');
+    end;
+end;
+
+//MAIN
+begin //
     cargarArchivos();
     writeln('.');
     readkey;
-    a:=resAcoSis[0];
+    a:=resIndSis[0];
     writeln(a.id);
     writeln(a.tReservacion);
     writeln(a.tHabitacion.nombre);
     writeln(a.diasEstadia);
-    writeln(a.precioTotal);
+    writeln(a.precioTotal:0:2);
     writeln(a.clientesEnSesion[0].nombre);
-    readkey;
+{id: integer;
+        tReservacion: string;
+        tHabitacion: habitacion;
+        diasEstadia: integer;
+        clientesEnSesion: array of cliente;
+        ninosEnSesion: array of nino;
+        precioTotal: real;}
+
+
     //clrscr;
     writeln('Bienvenido al sistema del Hotel Lidotel Boutique Margarita!');
     writeln('Presione cualquier tecla para continuar...');
@@ -489,41 +628,32 @@ begin
             end;
             '2': begin
                 repeat
-                    writeln('Por favor, indique el tipo de reserva que desea buscar:');
+                    writeln('Por favor, indique el tipo de reservacion que desea buscar:');
                     writeln('1. Individual.');
                     writeln('2. Acompañado.');
                     writeln('3. Grupo-Familia.');
                     op2:=readkey;
                     case (op2) of
                         '1': begin
-                            archivoSel:= archivoIndividual;
+                            resSel:= resIndSis;
                         end;
                         '2': begin
-                            archivoSel:= archivoAcompanado;
+                            resSel:= resAcoSis;
                         end;
                         '3': begin
-                            archivoSel:= archivoGF;
+                            resSel:= resGFSis;
                         end
                         else begin
                           writeln('Opcion no valida');
                         end;
                     end;
                 until (op2[1] in ['1','2','3']);
-                tResSel:='Reservas ' + tReservaciones[StrToInt(op2)] + '.txt';
                 repeat
                     writeln('Por favor, indique el ID de la reserva que desea buscar:');
                     readln(IDSelInt);
                 until (true); //hacer validacion
-                writeln(existeReservacion(archivoSel, tResSel, IDSelInt));
-                a:=getReservacion(archivoSel, tResSel, IDSelInt);
-                writeln(a.id);
-                writeln(a.tReservacion);
-                writeln(a.tHabitacion.nombre);
-                writeln(a.diasEstadia);
-                writeln(a.precioTotal);
-                writeln(a.clientesEnSesion[0].nombre);
+                buscarReservacion(resSel, IDSelInt);
                 readkey;
-                //mostrar la info de la reserva.
             end;
             '3': begin
                 readkey;
