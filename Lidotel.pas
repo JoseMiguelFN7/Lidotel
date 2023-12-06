@@ -265,6 +265,7 @@ begin
             end
             else begin
                 writeln('Opcion no valida.');
+                delay(2000);
             end;
         end;
         writeln('Precio: ', tipoHab[StrToInt(opp1)].precio, '$/noche.');
@@ -808,6 +809,7 @@ begin
                 mostrarDatosReservacion(reservaciones, posActual);
                 salir:=false;
                 repeat
+                    clrscr;
                     writeln('Indique la reservacion que desea ver ahora:');
                     writeln('0. Salir al menu.     1. Anterior.     2. Siguiente.');
                     opp:=readkey;
@@ -821,6 +823,7 @@ begin
                             begin
                                 writeln('No existe una reservacion anterior.');
                                 mostrar:=false;
+                                delay(2000);
                             end
                             else begin
                                 posActual-=1;
@@ -832,6 +835,7 @@ begin
                             begin
                                 writeln('No existe una reservacion siguiente.');
                                 mostrar:=false;
+                                delay(2000);
                             end
                             else begin
                                 posActual+=1;
@@ -841,6 +845,7 @@ begin
                         else begin
                             writeln('Dato no valido.');
                             mostrar:=false;
+                            delay(2000);
                         end;
                     end;
                     if (mostrar) then
@@ -852,9 +857,11 @@ begin
             end;
         end;
         writeln('No se ha conseguido ninguna reservacion con esa ID.');
+        delay(2000);
     end
     else begin
         writeln('No se ha conseguido ninguna reservacion con esa ID.');
+        delay(2000);
     end;
 end;
 
@@ -884,7 +891,8 @@ begin
                 resSel:= resGFSis;
             end
             else begin
-              writeln('Opcion no valida');
+                writeln('Opcion no valida');
+                delay(2000);
             end;
         end;
     until (op2[1] in ['1','2','3']);
@@ -935,7 +943,8 @@ begin
                                     readln(dias);
                                     if not esDia(dias) then
                                     begin
-                                        writeln('Ingrese una cantidad de dias valida.')
+                                        writeln('Ingrese una cantidad de dias valida.');
+                                        delay(2000);
                                     end;
                                 until esDia(dias);
                                 diasEstadia:=StrToInt(dias);
@@ -1035,7 +1044,12 @@ begin
                                             clrscr;
                                             write('Ingrese el telefono del adulto ', j+1, ':');
                                             readln(tel);
-                                        until true; //validacion
+                                            if not esTel(tel) then
+                                            begin
+                                                writeln('Ingrese un telefono valido (solo numeros).');
+                                                delay(2000);
+                                            end;
+                                        until esTel(tel);
                                         telefono:=tel;
                                     end;
                                     '6': begin
@@ -1046,6 +1060,7 @@ begin
                                     end
                                     else begin
                                         writeln('Dato no valido.');
+                                        delay(2000);
                                     end;
                                 end;
                             end;
@@ -1140,6 +1155,7 @@ end;
 begin
     clrscr;
     cargarArchivos();
+    writeln('');
     writeln('Bienvenido al sistema del Hotel Lidotel Boutique Margarita!');
     writeln('Presione cualquier tecla para continuar...');
     readkey;
