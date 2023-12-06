@@ -48,7 +48,7 @@ archivoIndividual, archivoAcompanado, archivoGF: Text;
 reservacionActual: reservacion;
 tResSel, IDSel: string;
 resIndSis, resAcoSis, resGFSis, resSel: array of reservacion;
-a: reservacion;
+
 function determinarId(var archivo: Text; nombreArchivo: string): integer;
 var
 linea: string;
@@ -475,29 +475,29 @@ end;
 procedure mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer);
 var j: integer;
 begin
-    writeLn('Datos de la reserva:');
+    writeln('Datos de la reserva:');
     with reservaciones[pos] do
     begin
-        writeLn('ID: ', id);
-        writeLn('Tipo de reserva: ', tReservacion);
-        writeLn('Tipo de habitacion: ', tHabitacion.nombre);
-        writeLn('Dias de estadia: ', diasEstadia);
-        writeLn('Precio total: ', (precioTotal):0:2, '$');
+        writeln('ID: ', id);
+        writeln('Tipo de reserva: ', tReservacion);
+        writeln('Tipo de habitacion: ', tHabitacion.nombre);
+        writeln('Dias de estadia: ', diasEstadia);
+        writeln('Precio total: ', (precioTotal):0:2, '$');
     end;
     writeln('Para ver la informacion de los clientes, presione cualquier tecla...');
     readkey;
     clrscr;
-    writeLn('Informacion de clientes:');
+    writeln('Informacion de clientes:');
     for j:=0 to length(reservaciones[pos].clientesEnSesion)-1 do
     begin
-        writeLn('Adulto ', j+1, ':');
+        writeln('Adulto ', j+1, ':');
         with reservaciones[pos].clientesEnSesion[j] do
         begin
-            writeLn('   Nombre: ', nombre);
-            writeLn('   Apellido: ', apellido);
-            writeLn('   Documento: ', documento);
-            writeLn('   E-mail: ', email);
-            writeLn('   Telefono: ', telefono);
+            writeln('   Nombre: ', nombre);
+            writeln('   Apellido: ', apellido);
+            writeln('   Documento: ', documento);
+            writeln('   E-mail: ', email);
+            writeln('   Telefono: ', telefono);
         end;
         if((j<length(reservaciones[pos].clientesEnSesion)-1) or (length(reservaciones[pos].ninosEnSesion)>0)) then
         begin
@@ -511,9 +511,9 @@ begin
         writeLn('Niño ', j+1, ':');
         with reservaciones[pos].ninosEnSesion[j] do
         begin
-            writeLn('   Nombre: ', nombre);
-            writeLn('   Apellido: ', apellido);
-            writeLn('   Edad: ', edad);
+            writeln('   Nombre: ', nombre);
+            writeln('   Apellido: ', apellido);
+            writeln('   Edad: ', edad);
         end;
         if(j<length(reservaciones[pos].ninosEnSesion)-1) then
         begin
@@ -590,28 +590,212 @@ begin
     end;
 end;
 
+procedure solicitarDatos(num: integer);
+begin
+    repeat
+        case (num) of
+            1: begin
+                writeln('Por favor, indique el tipo de reservacion que desea buscar:');
+            end;
+            2: begin
+                writeln('Por favor, indique el tipo de reservacion que desea modificar:');
+            end;
+        end;
+        writeln('1. Individual.');
+        writeln('2. Acompañado.');
+        writeln('3. Grupo-Familia.');
+        op2:=readkey;
+        case (op2) of
+            '1': begin
+                resSel:= resIndSis;
+            end;
+            '2': begin
+                resSel:= resAcoSis;
+            end;
+            '3': begin
+                resSel:= resGFSis;
+            end
+            else begin
+              writeln('Opcion no valida');
+            end;
+        end;
+    until (op2[1] in ['1','2','3']);
+    repeat
+        writeln('Por favor, indique el ID de la reserva que desea buscar:');
+        readln(IDSelInt);
+    until (true); //hacer validacion
+end;
+
+procedure modificarReservacion(var reservaciones: array of reservacion; ID: integer);
+var
+i, j: integer;
+opp, dias, nom, ape, tDoc, doc, correo, tel, age: string;
+next: boolean;
+begin
+    if(length(reservaciones)>0) then
+    begin
+        for i:=0 to length(reservaciones)-1 do
+        begin
+            if (reservaciones[i].id=ID) then
+            begin
+                with reservaciones[i] do
+                begin
+                    next:=false;
+                    repeat
+                        writeLn('Datos de la reserva (Indique el que desea modificar):');
+                        writeln('1. Tipo de habitacion: ', tHabitacion.nombre);
+                        writeln('2. Dias de estadia: ', diasEstadia);
+                        writeln('3. Siguiente.');
+                        writeln('4. Salir al menu.');
+                        opp:=readkey;
+                        case (opp) of
+                            '1': begin
+                                tHabitacion:=seleccionarTHab();
+                                precioTotal:=tHabitacion.precio*diasEstadia;
+                            end;
+                            '2': begin
+                                repeat
+                                    writeln('Ingrese la cantidad de dias de su estadia: ');
+                                    readln(dias);
+                                    //hacer validacion
+                                    diasEstadia:=StrToInt(dias);
+                                until true; //validacion
+                                precioTotal:=tHabitacion.precio*diasEstadia;
+                            end;
+                            '3': begin
+                                next:=true;
+                            end;
+                            '4': begin
+                                exit;
+                            end
+                            else begin
+                                writeln('Dato no valido.');
+                            end;
+                        end;
+                    until next;
+                    for j:=0 to length(clientesEnSesion)-1 do
+                    begin
+                        next:=false;
+                        repeat
+                            writeln('Datos del adulto ', j+1, ' (Indique el que desea modificar):');
+                            with clientesEnSesion[j] do
+                            begin
+                                writeln('1. Nombre: ', nombre);
+                                writeln('2. Apellido: ', apellido);
+                                writeln('3. Documento: ', documento);
+                                writeln('4. E-mail: ', email);
+                                writeln('5. Telefono: ', telefono);
+                                writeln('6. Siguiente.');
+                                writeln('7. Salir al menu.');
+                                opp:=readkey;
+                                case (opp) of
+                                    '1': begin
+                                        repeat
+                                            writeln('Ingrese el nombre del adulto ', j+1, ': ');
+                                            readln(nom);
+                                        until true; //validacion
+                                        nombre:=nom;
+                                    end;
+                                    '2': begin
+                                        repeat
+                                            writeln('Ingrese el apellido del adulto ', j+1, ': ');
+                                            readln(ape);
+                                        until true; //validacion
+                                        apellido:=ape;
+                                    end;
+                                    '3': begin
+                                        repeat
+                                            writeln('Ingrese el tipo de documento del adulto ' , j+1, ' (V/E/J/G/P): ');
+                                            readln(tDoc);
+                                            write('Ingrese el numero de documento del adulto ', j+1, ':');
+                                            readln(doc);
+                                        until true; //validacion
+                                        documento:=tDoc+doc;
+                                    end;
+                                    '4': begin
+                                        repeat
+                                            writeln('Ingrese el correo del adulto ', j+1, ':');
+                                            readln(correo);
+                                        until true; //validacion
+                                        email:=correo;
+                                    end;
+                                    '5': begin
+                                        repeat
+                                            write('Ingrese el telefono del adulto ', j+1, ':');
+                                            readln(tel);
+                                        until true; //validacion
+                                        telefono:=tel;
+                                    end;
+                                    '6': begin
+                                        next:=true;
+                                    end;
+                                    '7': begin
+                                        exit;
+                                    end
+                                    else begin
+                                        writeln('Dato no valido.');
+                                    end;
+                                end;
+                            end;
+                        until next;
+                    end;
+                    for j:=0 to length(ninosEnSesion)-1 do
+                    begin
+                        next:=false;
+                        repeat
+                            writeln('Datos del niño ', j+1, ' (Indique el que desea modificar):');
+                            with ninosEnSesion[j] do
+                            begin
+                                writeln('1. Nombre: ', nombre);
+                                writeln('2. Apellido: ', apellido);
+                                writeln('3. Edad: ', edad);
+                                writeln('4. Siguiente.');
+                                writeln('5. Salir al menu.');
+                                opp:=readkey;
+                                case (opp) of
+                                    '1': begin
+                                        repeat
+                                            writeln('Ingrese el nombre del niño ', j+1, ': ');
+                                            readln(nom);
+                                        until true; //validacion
+                                        nombre:=nom;
+                                    end;
+                                    '2': begin
+                                        repeat
+                                            writeln('Ingrese el apellido del niño ', j+1, ': ');
+                                            readln(ape);
+                                        until true; //validacion
+                                        apellido:=ape;
+                                    end;
+                                    '3': begin
+                                        repeat
+                                            writeln('Ingrese la edad del niño ', j+1, ':');
+                                            readln(age);
+                                        until true; //validacion
+                                        edad:=StrToInt(age);
+                                    end;
+                                    '4': begin
+                                        next:=true;
+                                    end;
+                                    '5': begin
+                                        exit;
+                                    end
+                                    else begin
+                                        writeln('Dato no valido.');
+                                    end;
+                                end;
+                            end;
+                        until next;
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+
 //MAIN
 begin //
     cargarArchivos();
-    writeln('.');
-    readkey;
-    a:=resIndSis[0];
-    writeln(a.id);
-    writeln(a.tReservacion);
-    writeln(a.tHabitacion.nombre);
-    writeln(a.diasEstadia);
-    writeln(a.precioTotal:0:2);
-    writeln(a.clientesEnSesion[0].nombre);
-{id: integer;
-        tReservacion: string;
-        tHabitacion: habitacion;
-        diasEstadia: integer;
-        clientesEnSesion: array of cliente;
-        ninosEnSesion: array of nino;
-        precioTotal: real;}
-
-
-    //clrscr;
     writeln('Bienvenido al sistema del Hotel Lidotel Boutique Margarita!');
     writeln('Presione cualquier tecla para continuar...');
     readkey;
@@ -627,39 +811,27 @@ begin //
                 nuevaReservacion(reservacionActual);
             end;
             '2': begin
-                repeat
-                    writeln('Por favor, indique el tipo de reservacion que desea buscar:');
-                    writeln('1. Individual.');
-                    writeln('2. Acompañado.');
-                    writeln('3. Grupo-Familia.');
-                    op2:=readkey;
-                    case (op2) of
-                        '1': begin
-                            resSel:= resIndSis;
-                        end;
-                        '2': begin
-                            resSel:= resAcoSis;
-                        end;
-                        '3': begin
-                            resSel:= resGFSis;
-                        end
-                        else begin
-                          writeln('Opcion no valida');
-                        end;
-                    end;
-                until (op2[1] in ['1','2','3']);
-                repeat
-                    writeln('Por favor, indique el ID de la reserva que desea buscar:');
-                    readln(IDSelInt);
-                until (true); //hacer validacion
+                solicitarDatos(1);
                 buscarReservacion(resSel, IDSelInt);
-                readkey;
             end;
             '3': begin
-                readkey;
+                solicitarDatos(2);
+                modificarReservacion(resSel, IDSelInt);
+                case (op2) of
+                    '1': begin
+                        actualizarArchivo(archivoIndividual, 'Reservas Individual.txt', resSel);
+                    end;
+                    '2': begin
+                        actualizarArchivo(archivoAcompanado, 'Reservas Acompañado.txt', resSel);
+                    end;
+                    '3': begin
+                        actualizarArchivo(archivoGF, 'Reservas Grupo-Familia.txt', resSel);
+                    end;
+                end;
             end;
             '4': begin
                 writeln('Gracias por usar el sistema, vuelva pronto.');
+                delay(2500);
             end
             else begin
                 writeln('Opcion no valida.');
