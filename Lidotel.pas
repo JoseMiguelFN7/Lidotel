@@ -217,7 +217,7 @@ begin
     determinarId:=idmax+1;
 end;
 
-function seleccionarTHab(): habitacion;
+function seleccionarTHab(): habitacion; //Para seleccionar el tipo de habitacion
 var
 opp1, opp2: string;
 begin
@@ -328,7 +328,7 @@ begin
     until (opp1[1] in ['1','2','3','4']) and (opp2[1] in ['s', 'S']);
 end;
 
-procedure actualizarArchivo(var archivo: Text; nombreArchivo: string; reservaciones: array of reservacion);
+procedure actualizarArchivo(var archivo: Text; nombreArchivo: string; reservaciones: array of reservacion); //Sistema--->Archivos
 var i, j: integer;
 begin
     assign(archivo, nombreArchivo);
@@ -369,7 +369,7 @@ begin
     close(archivo);
 end;
 
-function existeReservacion(var archivo: Text; nombreArchivo: string; ID: integer): boolean;
+function existeReservacion(var archivo: Text; nombreArchivo: string; ID: integer): boolean; //Busca reservacion por ID: true si existe
 var linea: string;
 begin
     if (FileExists(nombreArchivo)) then
@@ -394,7 +394,7 @@ begin
     end;
 end;
 
-function getReservacion(var archivo: Text; nombreArchivo: string; ID: integer): reservacion;
+function getReservacion(var archivo: Text; nombreArchivo: string; ID: integer): reservacion; //Consigue todos los datos de una reservacion
 var
 linea: string;
 encontrado, esAdulto, esNino: boolean;
@@ -520,7 +520,7 @@ begin
     close(archivo);
 end;
 
-procedure cargarArchivos();
+procedure cargarArchivos(); //Archivos--->Sistema
 var idmax, i: integer;
 begin
     if(FileExists('Reservas Individual.txt')) then
@@ -561,7 +561,7 @@ begin
     end;
 end;
 
-procedure mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer);
+procedure mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer); //Muestra todos los datos de una reservacion
 var j: integer;
 begin
     clrscr;
@@ -646,7 +646,7 @@ begin
     end;
 end;
 
-procedure nuevaReservacion(var res: reservacion); //PONER BONITO
+procedure nuevaReservacion(var res: reservacion); //Para crear una nueva reservacion
 var
 opp, dEstadia, nAdultos, nNinos, nom, ape, tDoc, doc, correo, tel, age: string;
 i: integer;
@@ -938,7 +938,7 @@ begin
     end;
 end;
 
-procedure buscarReservacion(reservaciones: array of reservacion; ID: integer);
+procedure buscarReservacion(reservaciones: array of reservacion; ID: integer); //Buscar reservacion por ID. Usa el procedimiento mostrar para desplegar la info de la reservacion conseguida
 var
 i, posActual: integer;
 opp: string;
@@ -1020,7 +1020,7 @@ begin
     end;
 end;
 
-procedure solicitarDatos(num: integer);
+procedure solicitarDatos(num: integer); //Pedir los datos necesarios para buscar y modificar (ambas usan los mismos parametros)
 begin
     repeat
         writeln('  |================================================================|');
@@ -1075,7 +1075,7 @@ begin
     until esID(IDSel);
 end;
 
-procedure modificarReservacion(var reservaciones: array of reservacion; ID: integer);
+procedure modificarReservacion(var reservaciones: array of reservacion; ID: integer); //para modificar una reservacion existente, la busca por ID
 var
 i, j: integer;
 opp, dias, nom, ape, tDoc, doc, correo, tel, age: string;
@@ -1434,16 +1434,16 @@ begin
         op1:=readkey;
         case(op1) of
             '1': begin
-                nuevaReservacion(reservacionActual);
+                nuevaReservacion(reservacionActual); //Crear reservacion
             end;
             '2': begin
                 solicitarDatos(1);
-                buscarReservacion(resSel, StrToInt(IDSel));
+                buscarReservacion(resSel, StrToInt(IDSel)); //Buscar reservacion
             end;
             '3': begin
                 solicitarDatos(2);
-                modificarReservacion(resSel, StrToInt(IDSel));
-                case (op2) of
+                modificarReservacion(resSel, StrToInt(IDSel)); //Modificar reservacion
+                case (op2) of //Actualizar archivos con los cambios
                     '1': begin
                         actualizarArchivo(archivoIndividual, 'Reservas Individual.txt', resSel);
                     end;
@@ -1455,7 +1455,7 @@ begin
                     end;
                 end;
             end;
-            '4': begin
+            '4': begin //Salir
                 clrscr;
                 writeln('  |===============================================|');
                 writeln('  |  Gracias por usar el sistema, vuelva pronto!  |');
