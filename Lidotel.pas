@@ -3,7 +3,7 @@ program Lidotel;
 
 {Integrantes del grupo:
 Jose Ferreira V28315655
-Adriano Robati V}
+Adriano Robati V30728825}
 
 uses crt, sysutils;
 type
@@ -47,6 +47,7 @@ reservacionActual: reservacion;
 IDSel, op1, op2: string;
 resIndSis, resAcoSis, resGFSis, resSel: array of reservacion;
 
+//VALIDACIONES DE DATOS---------------------------------------------------------------------------------
 function esEdad(e: string): boolean;
 var i:integer;
 begin
@@ -63,6 +64,11 @@ begin
             esEdad:=false;
             exit;
         end;
+    end;
+    if (StrToInt(e)>17) then
+    begin
+        esEdad:=false;
+        exit;
     end;
 end;
 
@@ -184,8 +190,8 @@ begin
         exit;
     end;
 end;
-
-function determinarId(var archivo: Text; nombreArchivo: string): integer;
+//FUNCIONES Y PROCEDIMIENTOS DEL PROGRAMA---------------------------------------------------
+function determinarId(var archivo: Text; nombreArchivo: string): integer; //Determina el ID de la reservacion.
 var
 linea: string;
 idmax: integer;
@@ -215,78 +221,105 @@ function seleccionarTHab(): habitacion;
 var
 opp1, opp2: string;
 begin
-    repeat //PONER BONITO
+    repeat
         clrscr;
-        writeln('Por favor, indique el tipo de habitacion:');
-        writeln('1. Sencilla.');
-        writeln('2. Doble.');
-        writeln('3. Family Room.');
-        writeln('4. Suite.');
+        writeln('  |===========================================|');
+        writeln('  | Por favor, indique el tipo de habitacion: |');
+        writeln('  |-------------------------------------------|');
+        writeln('  | 1. Sencilla.                              |');
+        writeln('  |-------------------------------------------|');
+        writeln('  | 2. Doble.                                 |');
+        writeln('  |-------------------------------------------|');
+        writeln('  | 3. Family Room.                           |');
+        writeln('  |-------------------------------------------|');
+        writeln('  | 4. Suite.                                 |');
+        writeln('  |===========================================|');
         opp1:=readkey;
-        clrscr;
         case (opp1) of
             '1': begin
-                writeln('Amplia y confortable habitación decorada con un estilo vanguardista, cama Lidotel Royal King con sábanas');
-                writeln('de algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,');
-                writeln('cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad y secador de cabello.');
-                writeln('Incluye:');
-                writeln('Desayuno Buffet en Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones');
-                writeln('del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.');
-                writeln('Niños de 0 a 2 años sin recargos.');
+                clrscr;
+                writeln('  |===============================================================================================================|');
+                writeln('  |    Amplia y confortable habitación decorada con un estilo vanguardista, cama Lidotel Royal King con sábanas   |');
+                writeln('  | de algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,      |');
+                writeln('  | cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad y secador de cabello.                     |');
+                writeln('  |---------------------------------------------------------------------------------------------------------------|');
+                writeln('  | Incluye:                                                                                                      |');
+                writeln('  | Desayuno Buffet en Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones    |');
+                writeln('  | del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.  |');
+                writeln('  | Niños de 0 a 2 años sin recargos.                                                                             |');
             end;
             '2': begin
-                writeln('Amplia y confortable habitación decorada con un estilo vanguardista, Dos Camas Lidotel Full con sábanas de');
-                writeln('algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,');
-                writeln('cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad secador de cabello.');
-                writeln('Incluye:');
-                writeln('Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones');
-                writeln('del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.');
-                writeln('Niños de 0 a 2 años sin recargos.');
+                clrscr;
+                writeln('  |===============================================================================================================|');
+                writeln('  |    Amplia y confortable habitación decorada con un estilo vanguardista, Dos Camas Lidotel Full con sábanas de |');
+                writeln('  | algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,         |');
+                writeln('  | cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad secador de cabello.                       |');
+                writeln('  |---------------------------------------------------------------------------------------------------------------|');
+                writeln('  | Incluye:                                                                                                      |');
+                writeln('  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones |');
+                writeln('  | del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.  |');
+                writeln('  | Niños de 0 a 2 años sin recargos.                                                                             |');
             end;
             '3': begin
-                writeln('Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, cama Lidotel Royal');
-                writeln('King, con reloj despertador, TV 32” HD Plasma con cable, baño con ducha, cafetera eléctrica, nevera ejecutiva,');
-                writeln('caja electrónica de seguridad y secador de cabello, armario adicional amplio, una habitación separada con 2');
-                writeln('camas full, baño con ducha.');
-                writeln('Incluye:');
-                writeln('Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de');
-                writeln('nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños');
-                writeln('de 0 a 2 años sin recargos.');
+                clrscr;
+                writeln('  |===============================================================================================================|');
+                writeln('  |    Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, cama Lidotel Royal|');
+                writeln('  | King, con reloj despertador, TV 32” HD Plasma con cable, baño con ducha, cafetera eléctrica, nevera ejecutiva,|');
+                writeln('  | caja electrónica de seguridad y secador de cabello, armario adicional amplio, una habitación separada con 2   |');
+                writeln('  | camas full, baño con ducha.                                                                                   |');
+                writeln('  |---------------------------------------------------------------------------------------------------------------|');
+                writeln('  | Incluye:                                                                                                      |');
+                writeln('  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de    |');
+                writeln('  | nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños   |');
+                writeln('  | de 0 a 2 años sin recargos.                                                                                   |');
             end;
             '4': begin
-                writeln('Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, Cama Lidotel Royal');
-                writeln('King, con reloj despertador, TV 32” HD Plasma con cable, 2 baños con ducha, cafetera eléctrica, nevera');
-                writeln('ejecutiva, caja electrónica de seguridad y secador de cabello, armario adicional amplio y área separada con 2');
-                writeln('sofá-cama individuales.');
-                writeln('Incluye:');
-                writeln('Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de');
-                writeln('nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños');
-                writeln('de 0 a 2 años sin recargos.')
+                clrscr;
+                writeln('  |===============================================================================================================|');
+                writeln('  | Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, Cama Lidotel Royal   |');
+                writeln('  | King, con reloj despertador, TV 32” HD Plasma con cable, 2 baños con ducha, cafetera eléctrica, nevera        |');
+                writeln('  | ejecutiva, caja electrónica de seguridad y secador de cabello, armario adicional amplio y área separada con 2 |');
+                writeln('  | sofá-cama individuales.                                                                                       |');
+                writeln('  |---------------------------------------------------------------------------------------------------------------|');
+                writeln('  | Incluye:                                                                                                      |');
+                writeln('  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de    |');
+                writeln('  | nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños   |');
+                writeln('  | de 0 a 2 años sin recargos.                                                                                   |')
+                
             end
             else begin
-                writeln('Opcion no valida.');
+                writeln('  | Opcion no valida.                         |');
+                writeln('  |===========================================|');
                 delay(2000);
             end;
         end;
-        writeln('Precio: ', tipoHab[StrToInt(opp1)].precio, '$/noche.');
-        writeln('Presione cualquier tecla para continuar...');
+        writeln('  |---------------------------------------------------------------------------------------------------------------|');
+        writeln('  | Precio: ', tipoHab[StrToInt(opp1)].precio, '$/noche.'); gotoXY(115, WhereY-1); writeln('|');
+        writeln('  |---------------------------------------------------------------------------------------------------------------|');
+        writeln('  | Presione cualquier tecla para continuar...                                                                    |');
+        writeln('  |===============================================================================================================|');
         readkey;
         if (opp1[1] in ['1','2','3','4']) then
         begin
             repeat
                 clrscr;
-                writeln('Desea confirmar su seleccion? (S/N)');
+                writeln('  |=====================================|');
+                writeln('  | Desea confirmar su seleccion? (S/N) |');
+                writeln('  |=====================================|');
                 opp2:=readkey;
                 case (opp2) of
                     's', 'S': begin
-                        writeln('Habitacion confirmada exitosamente.');
+                        writeln('  | Habitacion confirmada exitosamente. |');
+                        writeln('  |=====================================|');
                         seleccionarTHab:=tipoHab[StrToInt(opp1)];
                     end;
                     'n', 'N': begin
-                        writeln('Seleccion cancelada.');
+                        writeln('  | Seleccion cancelada.                |');
+                        writeln('  |=====================================|');
                     end
                     else begin
-                        writeln('Opcion no valida.');
+                        writeln('  | Opcion no valida.                   |');
+                        writeln('  |=====================================|');
                     end;
                 end;
                 delay(2000);
@@ -531,52 +564,85 @@ end;
 procedure mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer);
 var j: integer;
 begin
-    writeln('Datos de la reserva:');
+    clrscr;
+    writeln('  |======================================================================|');
+    writeln('  | Datos de la reserva:                                                 |');
+    writeln('  |======================================================================|');
     with reservaciones[pos] do
     begin
-        writeln('ID: ', id);
-        writeln('Tipo de reserva: ', tReservacion);
-        writeln('Tipo de habitacion: ', tHabitacion.nombre);
-        writeln('Dias de estadia: ', diasEstadia);
-        writeln('Precio total: ', (precioTotal):0:2, '$');
+        writeln('  | ID: ', id); gotoXY(74, WhereY-1); writeln('|');
+        writeln('  |----------------------------------------------------------------------|');
+        writeln('  | Tipo de reserva: ', tReservacion); gotoXY(74, WhereY-1); writeln('|');
+        writeln('  |----------------------------------------------------------------------|');
+        writeln('  | Tipo de habitacion: ', tHabitacion.nombre); gotoXY(74, WhereY-1); writeln('|');
+        writeln('  |----------------------------------------------------------------------|');
+        writeln('  | Dias de estadia: ', diasEstadia); gotoXY(74, WhereY-1); writeln('|');
+        writeln('  |----------------------------------------------------------------------|');
+        writeln('  | Precio total: ', (precioTotal):0:2, '$'); gotoXY(74, WhereY-1); writeln('|');
     end;
-    writeln('Para ver la informacion de los clientes, presione cualquier tecla...');
+    writeln('  |======================================================================|');
+    writeln('  | Para ver la informacion de los clientes, presione cualquier tecla... |');
+    writeln('  |======================================================================|');
     readkey;
-    clrscr;
-    writeln('Informacion de clientes:');
     for j:=0 to length(reservaciones[pos].clientesEnSesion)-1 do
     begin
-        writeln('Adulto ', j+1, ':');
+        clrscr;
+        writeln('  |==============================================================================|');
+        writeln('  | Informacion de clientes:                                                     |');
+        writeln('  |==============================================================================|');
+        writeln('  | Adulto ', j+1, ':'); gotoXY(82, WhereY-1); writeln('|');
         with reservaciones[pos].clientesEnSesion[j] do
         begin
-            writeln('   Nombre: ', nombre);
-            writeln('   Apellido: ', apellido);
-            writeln('   Documento: ', documento);
-            writeln('   E-mail: ', email);
-            writeln('   Telefono: ', telefono);
+            writeln('  |==============================================================================|');
+            writeln('  |   Nombre: ', nombre); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   Apellido: ', apellido); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   Documento: ', documento); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   E-mail: ', email); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   Telefono: ', telefono); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |==============================================================================|');
         end;
         if((j<length(reservaciones[pos].clientesEnSesion)-1) or (length(reservaciones[pos].ninosEnSesion)>0)) then
         begin
-            writeln('Para ver la informacion de la siguiente persona, presione cualquier tecla...');
-            readkey;
-            clrscr;
+            writeln('  | Para ver la informacion de la siguiente persona, presione cualquier tecla... |');
+            writeln('  |==============================================================================|');
+        end
+        else begin
+            writeln('  | Presione cualquier tecla para continuar...                                   |');
+            writeln('  |==============================================================================|');
         end;
+        readkey;
     end;
     for j:=0 to length(reservaciones[pos].ninosEnSesion)-1 do
     begin
-        writeLn('Niño ', j+1, ':');
+        clrscr;
+        writeln('  |==============================================================================|');
+        writeln('  | Informacion de clientes:                                                     |');
+        writeln('  |==============================================================================|');
+        writeLn('  | Niño ', j+1, ':'); gotoXY(82, WhereY-1); writeln('|');
         with reservaciones[pos].ninosEnSesion[j] do
         begin
-            writeln('   Nombre: ', nombre);
-            writeln('   Apellido: ', apellido);
-            writeln('   Edad: ', edad);
+            writeln('  |==============================================================================|');
+            writeln('  |   Nombre: ', nombre); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   Apellido: ', apellido); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |------------------------------------------------------------------------------|');
+            writeln('  |   Edad: ', edad); gotoXY(82, WhereY-1); writeln('|');
+            writeln('  |==============================================================================|');
         end;
         if(j<length(reservaciones[pos].ninosEnSesion)-1) then
         begin
-            writeln('Para ver la informacion de la siguiente persona, presione cualquier tecla...');
-            readkey;
-            clrscr;
+            writeln('  | Para ver la informacion de la siguiente persona, presione cualquier tecla... |');
+            writeln('  |==============================================================================|');
+        end
+        else begin
+            writeln('  | Presione cualquier tecla para continuar...                                   |');
+            writeln('  |==============================================================================|');
         end;
+        readkey;
     end;
 end;
 
@@ -588,10 +654,15 @@ valido: boolean;
 begin
     repeat
         clrscr;
-        writeln('Por favor, indique el tipo de reservacion:');
-        writeln('1. Individual.');
-        writeln('2. Acompañado.');
-        writeln('3. Grupo-Familia.');
+        writeln('  |=============================================|');
+        writeln('  | Por favor, indique el tipo de reservacion:  |');
+        writeln('  |---------------------------------------------|');
+        writeln('  | 1. Individual.                              |');
+        writeln('  |---------------------------------------------|');
+        writeln('  | 2. Acompañado.                              |');
+        writeln('  |---------------------------------------------|');
+        writeln('  | 3. Grupo-Familia.                           |');
+        writeln('  |=============================================|');
         opp:=readkey;
         case(opp) of
             '1': begin
@@ -606,7 +677,10 @@ begin
                 repeat
                     valido:=true;
                     clrscr;
-                    write('Indique la cantidad de adultos:');
+                    writeln('  |=================================|');
+                    writeln('  | Indique la cantidad de adultos: |');
+                    writeln('  |---------------------------------|');
+                    write('  |-> ');
                     readln(nAdultos);
                     if not esID(nAdultos) then
                     begin
@@ -621,16 +695,26 @@ begin
                     end;
                     if not valido then
                     begin
-                        writeln('Ingrese una cantidad valida.');
+                        gotoXY(37, WhereY-1); writeln('|');
+                        writeln('  |---------------------------------|');
+                        writeln('  | Ingrese una cantidad valida.    |');
+                        writeln('  |=================================|');
                         delay(2000);
                     end;
                 until valido;
                 repeat
-                    write('Indique la cantidad de niños:');
+                    clrscr;
+                    writeln('  |=================================|');
+                    writeln('  | Indique la cantidad de niños:   |');
+                    writeln('  |---------------------------------|');
+                    write('  |-> ');
                     readln(nNinos);
                     if not esID(nNinos) then
                     begin
-                        writeln('Ingrese una cantidad valida.');
+                        gotoXY(37, WhereY-1); writeln('|');
+                        writeln('  |---------------------------------|');
+                        writeln('  | Ingrese una cantidad valida.    |');
+                        writeln('  |=================================|');
                         delay(2000);
                     end;
                 until esID(nNinos);
@@ -639,18 +723,25 @@ begin
                 res.id:=determinarId(archivoGF, 'Reservas Grupo-Familia.txt');
             end
             else begin
-                writeln('Opcion no valida.');
+                writeln('  | Opcion no valida.                           |');
+                writeln('  |=============================================|');
                 delay(2000);
             end;
         end;
     until (opp[1] in ['1', '2', '3']);
     repeat
         clrscr;
-        write('Ingrese los dias de estadia');
+        writeln('  |======================================|');
+        writeln('  | Ingrese los dias de estadia:         |');
+        writeln('  |--------------------------------------|');
+        write('  |-> ');
         readln(dEstadia);
         if not esDia(dEstadia) then
         begin
-            writeln('Ingrese una cantidad de dias valida.');
+            gotoXY(42, WhereY-1); writeln('|');
+            writeln('  |--------------------------------------|');
+            writeln('  | Ingrese una cantidad de dias valida. |');
+            writeln('  |======================================|');
             delay(2000);
         end;
     until esDia(dEstadia);
@@ -665,61 +756,97 @@ begin
     begin
         repeat
             clrscr;
-            write('Ingrese el nombre del adulto ', i+1, ':');
+            writeln('  |===========================================================================|');
+            writeln('  | Ingrese el nombre del adulto ', i+1, ':'); gotoXY(79, WhereY-1); writeln('|');
+            writeln('  |---------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(nom);
             if not esNombreApellido(nom) then
             begin
-                writeln('Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).');
+                gotoXY(79, WhereY-1); writeln('|');
+                writeln('  |---------------------------------------------------------------------------|');
+                writeln('  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales). |');
+                writeln('  |===========================================================================|');
                 delay(2000);
             end;
         until esNombreApellido(nom);
         repeat
             clrscr;
-            write('Ingrese el apellido del adulto ', i+1, ':');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el apellido del adulto ', i+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(ape);
             if not esNombreApellido(ape) then
             begin
-                writeln('Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esNombreApellido(ape);
         repeat
             clrscr;
-            write('Ingrese el tipo de documento del adulto ' , i+1, ' (V/E/J/G/P): ');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el tipo de documento del adulto ' , i+1, ' (V/E/J/G/P): '); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             tDoc:=readkey;
             if not (tDoc[1] in ['V','v','E','e','J','j','G','g','P','p']) then
             begin
-                writeln('Ingrese un tipo de documento valido.');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un tipo de documento valido.                                       |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until (tDoc[1] in ['V','v','E','e','J','j','G','g','P','p']);
         repeat
             clrscr;
-            write('Ingrese el numero de documento del adulto ', i+1, ': ');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el numero de documento del adulto ', i+1, ': '); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(doc);
             if not esDocumento(doc) then
             begin
-                writeln('Ingrese un numero de documento valido.');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un numero de documento valido.                                     |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esDocumento(doc);
         repeat
             clrscr;
-            write('Ingrese el correo del adulto ', i+1, ': ');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el correo del adulto ', i+1, ': '); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(correo);
             if not esMail(correo) then
             begin
-                writeln('Ingrese un correo valido.');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un correo valido.                                                  |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esMail(correo);
         repeat
             clrscr;
-            write('Ingrese el telefono del adulto ', i+1, ': ');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el telefono del adulto ', i+1, ': '); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(tel);
             if not esTel(tel) then
             begin
-                writeln('Ingrese un telefono valido (solo numeros).');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un telefono valido (solo numeros).                                 |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esTel(tel);
@@ -736,31 +863,49 @@ begin
     begin
         repeat
             clrscr;
-            write('Ingrese el nombre del niño ', i+1, ':');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el nombre del niño ', i+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(nom);
             if not esNombreApellido(nom) then
             begin
-                writeln('Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).  |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esNombreApellido(nom);
         repeat
             clrscr;
-            write('Ingrese el apellido del niño ', i+1, ':');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese el apellido del niño ', i+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(ape);
             if not esNombreApellido(ape) then
             begin
-                writeln('Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esNombreApellido(ape);
         repeat
             clrscr;
-            write('Ingrese la edad del niño ', i+1, ':');
+            writeln('  |============================================================================|');
+            writeln('  | Ingrese la edad del niño ', i+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+            writeln('  |----------------------------------------------------------------------------|');
+            write('  |-> ');
             readln(age);
             if not esEdad(age) then
             begin
-                writeln('Ingrese una edad valida.');
+                gotoXY(80, WhereY-1); writeln('|');
+                writeln('  |----------------------------------------------------------------------------|');
+                writeln('  | Ingrese una edad valida (17 años o menos).                                 |');
+                writeln('  |============================================================================|');
                 delay(2000);
             end;
         until esEdad(age);
@@ -810,8 +955,11 @@ begin
                 salir:=false;
                 repeat
                     clrscr;
-                    writeln('Indique la reservacion que desea ver ahora:');
-                    writeln('0. Salir al menu.     1. Anterior.     2. Siguiente.');
+                    writeln('  |===========================================================|');
+                    writeln('  | Indique la reservacion que desea ver ahora:               |');
+                    writeln('  |-----------------------------------------------------------|');
+                    writeln('  | 0. Salir al menu.   |   1. Anterior.   |   2. Siguiente.  |');
+                    writeln('  |===========================================================|');
                     opp:=readkey;
                     case (opp) of
                         '0': begin
@@ -821,7 +969,8 @@ begin
                         '1': begin
                             if(posActual=0) then
                             begin
-                                writeln('No existe una reservacion anterior.');
+                                writeln('  | No existe una reservacion anterior.                       |');
+                                writeln('  |===========================================================|');
                                 mostrar:=false;
                                 delay(2000);
                             end
@@ -833,7 +982,8 @@ begin
                         '2': begin
                             if(posActual=(length(reservaciones)-1)) then
                             begin
-                                writeln('No existe una reservacion siguiente.');
+                                writeln('  | No existe una reservacion siguiente.                      |');
+                                writeln('  |===========================================================|');
                                 mostrar:=false;
                                 delay(2000);
                             end
@@ -843,7 +993,8 @@ begin
                             end;
                         end
                         else begin
-                            writeln('Dato no valido.');
+                            writeln('  | Dato no valido.                                           |');
+                            writeln('  |===========================================================|');
                             mostrar:=false;
                             delay(2000);
                         end;
@@ -856,11 +1007,15 @@ begin
                 exit;
             end;
         end;
-        writeln('No se ha conseguido ninguna reservacion con esa ID.');
+        writeln('  |=====================================================|');
+        writeln('  | No se ha conseguido ninguna reservacion con esa ID. |');
+        writeln('  |=====================================================|');
         delay(2000);
     end
     else begin
-        writeln('No se ha conseguido ninguna reservacion con esa ID.');
+        writeln('  |=====================================================|');
+        writeln('  | No se ha conseguido ninguna reservacion con esa ID. |');
+        writeln('  |=====================================================|');
         delay(2000);
     end;
 end;
@@ -868,17 +1023,22 @@ end;
 procedure solicitarDatos(num: integer);
 begin
     repeat
+        writeln('  |================================================================|');
         case (num) of
             1: begin
-                writeln('Por favor, indique el tipo de reservacion que desea buscar:');
+                writeln('  | Por favor, indique el tipo de reservacion que desea buscar:    |');
             end;
             2: begin
-                writeln('Por favor, indique el tipo de reservacion que desea modificar:');
+                writeln('  | Por favor, indique el tipo de reservacion que desea modificar: |');
             end;
         end;
-        writeln('1. Individual.');
-        writeln('2. Acompañado.');
-        writeln('3. Grupo-Familia.');
+        writeln('  |----------------------------------------------------------------|');
+        writeln('  | 1. Individual.                                                 |');
+        writeln('  |----------------------------------------------------------------|');
+        writeln('  | 2. Acompañado.                                                 |');
+        writeln('  |----------------------------------------------------------------|');
+        writeln('  | 3. Grupo-Familia.                                              |');
+        writeln('  |================================================================|');
         op2:=readkey;
         case (op2) of
             '1': begin
@@ -891,18 +1051,25 @@ begin
                 resSel:= resGFSis;
             end
             else begin
-                writeln('Opcion no valida');
+                writeln('  | Opcion no valida                                               |');
+                writeln('  |================================================================|');
                 delay(2000);
             end;
         end;
     until (op2[1] in ['1','2','3']);
     repeat
         clrscr;
-        writeln('Por favor, indique el ID de la reserva que desea buscar:');
+        writeln('  |=============================================================|');
+        writeln('  | Por favor, indique el ID de la reserva que desea buscar:    |');
+        writeln('  |-------------------------------------------------------------|');
+        write('  |-> ');
         readln(IDSel);
         if not esID(IDSel) then
         begin
-            writeln('Ingrese un ID valido.');
+            gotoXY(65, WhereY-1); writeln('|');
+            writeln('  |-------------------------------------------------------------|');
+            writeln('  | Ingrese un ID valido.                                       |');
+            writeln('  |=============================================================|');
             delay(2000);
         end;
     until esID(IDSel);
@@ -925,11 +1092,17 @@ begin
                     next:=false;
                     repeat
                         clrscr;
-                        writeLn('Datos de la reserva (Indique el que desea modificar):');
-                        writeln('1. Tipo de habitacion: ', tHabitacion.nombre);
-                        writeln('2. Dias de estadia: ', diasEstadia);
-                        writeln('3. Siguiente.');
-                        writeln('4. Salir al menu.');
+                        writeln('  |=======================================================|');
+                        writeln('  | Datos de la reserva (Indique el que desea modificar): |');
+                        writeln('  |=======================================================|');
+                        writeln('  | 1. Tipo de habitacion: ', tHabitacion.nombre); gotoXY(59, WhereY-1); writeln('|');
+                        writeln('  |-------------------------------------------------------|');
+                        writeln('  | 2. Dias de estadia: ', diasEstadia); gotoXY(59, WhereY-1); writeln('|');
+                        writeln('  |-------------------------------------------------------|');
+                        writeln('  | 3. Siguiente.                                         |');
+                        writeln('  |-------------------------------------------------------|');
+                        writeln('  | 4. Salir al menu.                                     |');
+                        writeln('  |=======================================================|');
                         opp:=readkey;
                         case (opp) of
                             '1': begin
@@ -939,11 +1112,17 @@ begin
                             '2': begin
                                 repeat
                                     clrscr;
-                                    writeln('Ingrese la cantidad de dias de su estadia: ');
+                                    writeln('  |=======================================================|');
+                                    writeln('  | Ingrese la cantidad de dias de su estadia:            |');
+                                    writeln('  |-------------------------------------------------------|');
+                                    write('  |-> ');
                                     readln(dias);
                                     if not esDia(dias) then
                                     begin
-                                        writeln('Ingrese una cantidad de dias valida.');
+                                        gotoXY(59, WhereY-1); writeln('|');
+                                        writeln('  |-------------------------------------------------------|');
+                                        writeln('  | Ingrese una cantidad de dias valida.                  |');
+                                        writeln('  |=======================================================|');
                                         delay(2000);
                                     end;
                                 until esDia(dias);
@@ -957,7 +1136,8 @@ begin
                                 exit;
                             end
                             else begin
-                                writeln('Dato no valido.');
+                                writeln('  | Dato no valido.                                       |');
+                                writeln('  |=======================================================|');
                                 delay(2000);
                             end;
                         end;
@@ -967,26 +1147,41 @@ begin
                         next:=false;
                         repeat
                             clrscr;
-                            writeln('Datos del adulto ', j+1, ' (Indique el que desea modificar):');
+                            writeln('  |============================================================|');
+                            writeln('  | Datos del adulto ', j+1, ' (Indique el que desea modificar):'); gotoXY(64, WhereY-1); writeln('|');
+                            writeln('  |============================================================|');
                             with clientesEnSesion[j] do
                             begin
-                                writeln('1. Nombre: ', nombre);
-                                writeln('2. Apellido: ', apellido);
-                                writeln('3. Documento: ', documento);
-                                writeln('4. E-mail: ', email);
-                                writeln('5. Telefono: ', telefono);
-                                writeln('6. Siguiente.');
-                                writeln('7. Salir al menu.');
+                                writeln('  | 1. Nombre: ', nombre); gotoXY(64, WhereY-1); writeln('|');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 2. Apellido: ', apellido); gotoXY(64, WhereY-1); writeln('|');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 3. Documento: ', documento); gotoXY(64, WhereY-1); writeln('|');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 4. E-mail: ', email); gotoXY(64, WhereY-1); writeln('|');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 5. Telefono: ', telefono); gotoXY(64, WhereY-1); writeln('|');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 6. Siguiente.                                              |');
+                                writeln('  |------------------------------------------------------------|');
+                                writeln('  | 7. Salir al menu.                                          |');
+                                writeln('  |============================================================|');
                                 opp:=readkey;
                                 case (opp) of
                                     '1': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese el nombre del adulto ', j+1, ': ');
+                                            writeln('  |===========================================================================|');
+                                            writeln('  | Ingrese el nombre del adulto ', j+1, ':'); gotoXY(79, WhereY-1); writeln('|');
+                                            writeln('  |---------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(nom);
                                             if not esNombreApellido(nom) then
                                             begin
-                                                writeln('Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).');
+                                                gotoXY(79, WhereY-1); writeln('|');
+                                                writeln('  |---------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales). |');
+                                                writeln('  |===========================================================================|');
                                                 delay(2000);
                                             end;
                                         until esNombreApellido(nom);
@@ -995,11 +1190,17 @@ begin
                                     '2': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese el apellido del adulto ', j+1, ': ');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el apellido del adulto ', j+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(ape);
                                             if not esNombreApellido(ape) then
                                             begin
-                                                writeln('Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until esNombreApellido(ape);
@@ -1008,20 +1209,32 @@ begin
                                     '3': begin
                                         repeat
                                             clrscr;
-                                            write('Ingrese el tipo de documento del adulto ' , j+1, ' (V/E/J/G/P): ');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el tipo de documento del adulto ' , j+1, ' (V/E/J/G/P): '); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             tDoc:=readkey;
                                             if not (tDoc[1] in ['V','v','E','e','J','j','G','g','P','p']) then
                                             begin
-                                                writeln('Ingrese un tipo de documento valido.');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un tipo de documento valido.                                       |');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until (tDoc[1] in ['V','v','E','e','J','j','G','g','P','p']);
                                         repeat
-                                            write('Ingrese el numero de documento del adulto ', j+1, ':');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el numero de documento del adulto ', j+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(doc);
                                             if not esDocumento(doc) then
                                             begin
-                                                writeln('Ingrese un numero de documento valido.');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un numero de documento valido.                                     |');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until (esDocumento(doc));
@@ -1030,11 +1243,18 @@ begin
                                     '4': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese el correo del adulto ', j+1, ':');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el correo del adulto ', j+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(correo);
                                             if not esMail(correo) then
                                             begin
-                                                writeln('Ingrese un correo valido.');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un correo valido.                                                  |');
+                                                writeln('  |============================================================================|');
+                                                delay(2000);
                                             end;
                                         until esMail(correo);
                                         email:=correo;
@@ -1042,11 +1262,17 @@ begin
                                     '5': begin
                                         repeat
                                             clrscr;
-                                            write('Ingrese el telefono del adulto ', j+1, ':');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el telefono del adulto ', j+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(tel);
                                             if not esTel(tel) then
                                             begin
-                                                writeln('Ingrese un telefono valido (solo numeros).');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un telefono valido (solo numeros).                                 |');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until esTel(tel);
@@ -1059,7 +1285,8 @@ begin
                                         exit;
                                     end
                                     else begin
-                                        writeln('Dato no valido.');
+                                        writeln('  | Dato no valido.                                            |');
+                                        writeln('  |============================================================|');
                                         delay(2000);
                                     end;
                                 end;
@@ -1071,24 +1298,37 @@ begin
                         next:=false;
                         repeat
                             clrscr;
-                            writeln('Datos del niño ', j+1, ' (Indique el que desea modificar):');
+                            writeln('  |============================================================================|');
+                            writeln('  | Datos del niño ', j+1, ' (Indique el que desea modificar):'); gotoXY(80, WhereY-1); writeln('|');
+                            writeln('  |============================================================================|');
                             with ninosEnSesion[j] do
                             begin
-                                writeln('1. Nombre: ', nombre);
-                                writeln('2. Apellido: ', apellido);
-                                writeln('3. Edad: ', edad);
-                                writeln('4. Siguiente.');
-                                writeln('5. Salir al menu.');
+                                writeln('  | 1. Nombre: ', nombre); gotoXY(80, WhereY-1); writeln('|');
+                                writeln('  |----------------------------------------------------------------------------|');
+                                writeln('  | 2. Apellido: ', apellido); gotoXY(80, WhereY-1); writeln('|');
+                                writeln('  |----------------------------------------------------------------------------|');
+                                writeln('  | 3. Edad: ', edad); gotoXY(80, WhereY-1); writeln('|');
+                                writeln('  |----------------------------------------------------------------------------|');
+                                writeln('  | 4. Siguiente.                                                              |');
+                                writeln('  |----------------------------------------------------------------------------|');
+                                writeln('  | 5. Salir al menu.                                                          |');
+                                writeln('  |============================================================================|');
                                 opp:=readkey;
                                 case (opp) of
                                     '1': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese el nombre del niño ', j+1, ': ');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el nombre del niño ', j+1, ': '); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(nom);
                                             if not esNombreApellido(nom) then
                                             begin
-                                                writeln('Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).  |');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until esNombreApellido(nom);
@@ -1097,11 +1337,17 @@ begin
                                     '2': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese el apellido del niño ', j+1, ': ');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese el apellido del niño ', j+1, ': '); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(ape);
                                             if not esNombreApellido(ape) then
                                             begin
-                                                writeln('Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until esNombreApellido(ape);
@@ -1110,11 +1356,17 @@ begin
                                     '3': begin
                                         repeat
                                             clrscr;
-                                            writeln('Ingrese la edad del niño ', j+1, ':');
+                                            writeln('  |============================================================================|');
+                                            writeln('  | Ingrese la edad del niño ', j+1, ':'); gotoXY(80, WhereY-1); writeln('|');
+                                            writeln('  |----------------------------------------------------------------------------|');
+                                            write('  |-> ');
                                             readln(age);
                                             if not esEdad(age) then
                                             begin
-                                                writeln('Ingrese una edad valida.');
+                                                gotoXY(80, WhereY-1); writeln('|');
+                                                writeln('  |----------------------------------------------------------------------------|');
+                                                writeln('  | Ingrese una edad valida (17 años o menos).                                 |');
+                                                writeln('  |============================================================================|');
                                                 delay(2000);
                                             end;
                                         until esEdad(age);
@@ -1127,7 +1379,8 @@ begin
                                         exit;
                                     end
                                     else begin
-                                        writeln('Dato no valido.');
+                                        writeln('  | Dato no valido.                                                            |');
+                                        writeln('  |============================================================================|');
                                         delay(2000);
                                     end;
                                 end;
@@ -1139,14 +1392,18 @@ begin
             else begin
                 if (i=length(reservaciones)-1) then
                 begin
-                    writeln('No se ha conseguido ninguna reservacion con esa ID.');
+                    writeln('  |=========================================================|');
+                    writeln('  | No se ha conseguido ninguna reservacion con esa ID.     |');
+                    writeln('  |=========================================================|');
                     delay(2000);
                 end;
             end;
         end;
     end
     else begin
-        writeln('No se ha conseguido ninguna reservacion con esa ID.');
+        writeln('  |=========================================================|');
+        writeln('  | No se ha conseguido ninguna reservacion con esa ID.     |');
+        writeln('  |=========================================================|');
         delay(2000);
     end;
 end;
@@ -1155,17 +1412,25 @@ end;
 begin
     clrscr;
     cargarArchivos();
-    writeln('');
-    writeln('Bienvenido al sistema del Hotel Lidotel Boutique Margarita!');
-    writeln('Presione cualquier tecla para continuar...');
+    writeln('  |=============================================================|');
+    writeln('  | Bienvenido al sistema del Hotel Lidotel Boutique Margarita! |');
+    writeln('  |-------------------------------------------------------------|');
+    writeln('  | Presione cualquier tecla para continuar...                  |');
+    writeln('  |=============================================================|');
     readkey;
     repeat
         clrscr;
-        writeln('Por favor indique la operacion a realizar:');
-        writeln('1. Nuevo cliente.');
-        writeln('2. Buscar reservacion.');
-        writeln('3. Modificar reservacion.');
-        writeln('4. Salir.');
+        writeln('  |===============================================|');
+        writeln('  | Por favor indique la operacion a realizar:    |');
+        writeln('  |-----------------------------------------------|');
+        writeln('  | 1. Nuevo cliente.                             |');
+        writeln('  |-----------------------------------------------|');
+        writeln('  | 2. Buscar reservacion.                        |');
+        writeln('  |-----------------------------------------------|');
+        writeln('  | 3. Modificar reservacion.                     |');
+        writeln('  |-----------------------------------------------|');
+        writeln('  | 4. Salir.                                     |');
+        writeln('  |===============================================|');
         op1:=readkey;
         case(op1) of
             '1': begin
@@ -1191,11 +1456,15 @@ begin
                 end;
             end;
             '4': begin
-                writeln('Gracias por usar el sistema, vuelva pronto.');
+                clrscr;
+                writeln('  |===============================================|');
+                writeln('  |  Gracias por usar el sistema, vuelva pronto!  |');
+                writeln('  |===============================================|');
                 delay(3000);
             end
             else begin
-                writeln('Opcion no valida.');
+                writeln('  | Opcion no valida.                             |');
+                writeln('  |===============================================|');
                 delay(2000);
             end;
         end;
