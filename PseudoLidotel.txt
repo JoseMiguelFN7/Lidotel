@@ -1,0 +1,1290 @@
+{Integrantes del grupo:
+Jose Ferreira V28315655
+Adriano Robati V30728825}
+
+Inicio
+Tipo
+	habitacion = registro
+		nombre: string;
+		precio: integer;
+	fin registro;
+	cliente = registro
+		nombre: string;
+		apellido: string;
+		documento: string;
+		email: string;
+		telefono: string;
+	fin registro;
+	nino = registro
+		nombre: string;
+		apellido: string;
+		edad: integer;
+	fin registro;
+	reservacion = registro
+		id: integer;
+		tReservacion: habitacion;
+		diasEstadia: integer;
+		clientesEnSesion: arreglo de cliente;
+		ninosEnSesion: arreglo de nino;
+		preciototal: real;
+	fin registro;
+
+Const
+	tReservaciones: arreglo[1..3] de RawByteString = ("Individual", "Acompañado", "Grupo-Familia");
+	tipoHab: arreglo [1..4] de habitacion = (
+		(nombre: "Sencilla"; precio: 60),
+		(nombre: "Doble"; precio: 120),
+		(nombre: "Family Room"; precio: 200),
+		(nombre: "Suite"; precio: 300));
+
+var
+archivoIndividual, archivoAcompanado, archivoGF: Text;
+reservacionActual: reservacion;
+IDSel, op1, op2: string;
+resIndSis, resAcoSis, resGFSis, resSel: arreglo de reservacion;
+
+//VALIDACIONES DE DATOS---------------------------------------------------------------------------------
+funcion esEdad(e: string): boolean;
+var i:integer;
+Inicio funcion
+	esEdad:=true;
+	Si (e="") entonces
+		esEdad:=false;
+		exit;
+	Fin Si;
+	Para i:=1 hasta length(e) hacer
+		Si no (e[i] en ["0".."9"]) entonces
+			esEdad:=false;
+			exit;
+		Fin Si;
+	Fin Para;
+	Si (StrToInt(e)>17) entonces
+		esEdad:=false;
+		exit;
+    	Fin Si;
+Fin funcion;
+
+funcion esNombreApellido(s: string): boolean;
+var i: integer;
+Inicio funcion
+	esNombreApellido:=true;
+	Si (s="") entonces
+        	esNombreApellido:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si (no (s[i] en ["a".."z", "A".."Z"])) entonces
+           		esNombreApellido:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+Fin funcion;
+
+funcion esDocumento(s: string): boolean;
+var i: integer;
+Inicio funcion
+	esDocumento:=true;
+    	Si ((s[1]="0") o (s="")) entonces
+    		esDocumento:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si (no (s[i] en ["0".."9"])) then
+        		esDocumento:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+Fin funcion;
+
+funcion esID(s: string): boolean;
+var i: integer;
+inico funcion
+	esID:=true;
+    	Si (s="") entonces
+        	esID:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si no (s[i] en ["0".."9"]) entonces
+            		esID:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+Fin funcion;
+
+funcion esMail(s: string): boolean;
+var i: integer;
+Inicio funcion
+    	esMail:=true;
+    	Si (s="") entonces
+        	esMail:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si (s[i]=" ") entonces
+            		esMail:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+Fin funcion;
+
+funcion esTel(s: string): boolean;
+var i: integer;
+inico funcion
+	esTel:=true;
+    	Si (s="") entonces
+        	esTel:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si no (s[i] en ["0".."9"]) entonces
+            		esTel:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+Fin funcion;
+
+funcion esDia(s: string): boolean;
+var i: integer;
+Inicio funcion
+    	esDia:=true;
+    	Si (s="") entonces
+        	esDia:=false;
+        	exit;
+    	Fin Si;
+    	Para i:=1 hasta length(s) hacer
+        	Si no (s[i] en ["0".."9"]) entonces
+            		esDia:=false;
+            		exit;
+        	Fin Si;
+    	Fin Para;
+    	Si (StrToInt(s)<=0) entonces
+        	esDia:=false;
+        	exit;
+    	Fin Si;
+Fin funcion;
+//FUNCIONES Y PROCEDIMIENTOS DEL PROGRAMA---------------------------------------------------
+funcion determinarId(var archivo: Text; nombreArchivo: string): integer; //Determina el ID de la reservacion.
+var
+linea: string;
+idmax: integer;
+Inicio funcion
+	idmax:=0;
+    	if(FileExists(nombreArchivo)) then
+        	asignar(archivo, nombreArchivo);
+        	reset(archivo);
+        	Mientras no (eof(archivo)) hacer
+            		Leer (archivo, linea);
+            		Si(Copy(linea, 1, 2)="ID") entonces
+                		Si (StrToInt(Copy(linea, 5, length(linea)))>idmax) entonces
+                    		idmax:=StrToInt(Copy(linea, 5, length(linea)));
+                		Fin Si;
+            		Fin Si;
+        	Fin Mientras;
+        	close(archivo);
+    	Fin Si;
+    	determinarId:=idmax+1;
+Fin funcion;
+
+funcion seleccionarTHab(): habitacion; //Para seleccionar el tipo de habitacion
+var
+opp1, opp2: string;
+Inicio funcion
+	Repetir
+        	Limpiar pantalla;
+        	Escribir"  |===========================================|";
+        	Escribir"  | Por favor, indique el tipo de habitacion: |";
+        	Escribir"  |-------------------------------------------|";
+        	Escribir"  | 1. Sencilla.                              |";
+        	Escribir"  |-------------------------------------------|";
+        	Escribir"  | 2. Doble.                                 |";
+        	Escribir"  |-------------------------------------------|";
+        	Escribir"  | 3. Family Room.                           |";
+        	Escribir"  |-------------------------------------------|";
+        	Escribir"  | 4. Suite.                                 |";
+        	Escribir"  |===========================================|";
+        	opp1:=readkey;
+        	Segun (opp1) Hacer
+            		Caso, =1
+                		Limpiar pantalla;
+                		Escribir"  |===============================================================================================================|";
+                		Escribir"  |    Amplia y confortable habitación decorada con un estilo vanguardista, cama Lidotel Royal King con sábanas   |";
+                		Escribir"  | de algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,      |";
+                		Escribir"  | cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad y secador de cabello.                     |";
+                		Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+                		Escribir"  | Incluye:                                                                                                      |";
+                		Escribir"  | Desayuno Buffet en Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones    |";
+                		Escribir"  | del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.  |";
+                		Escribir"  | Niños de 0 a 2 años sin recargos.                                                                             |";
+            		Caso, =2
+                		Limpiar pantalla;
+                		Escribir"  |===============================================================================================================|";
+                		Escribir"  |    Amplia y confortable habitación decorada con un estilo vanguardista, Dos Camas Lidotel Full con sábanas de |";
+                		Escribir"  | algodón egipcio, soporte para iPod con reloj despertador, TV 32” HD Plasma con cable, baño con ducha,         |";
+                		Escribir"  | cafetera eléctrica, nevera ejecutiva, caja electrónica de seguridad secador de cabello.                       |";
+                		Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+                		Escribir"  | Incluye:                                                                                                      |";
+                		Escribir"  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), acceso a las instalaciones |";
+                		Escribir"  | del Business Center, uso de nuestra exclusiva piscina, acceso a nuestro moderno gimnasio y Kit de vanidades.  |";
+                		Escribir"  | Niños de 0 a 2 años sin recargos.                                                                             |";
+            		Caso, =3
+                		Limpiar pantalla;
+                		Escribir"  |===============================================================================================================|";
+                		Escribir"  |    Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, cama Lidotel Royal|";
+                		Escribir"  | King, con reloj despertador, TV 32” HD Plasma con cable, baño con ducha, cafetera eléctrica, nevera ejecutiva,|";
+                		Escribir"  | caja electrónica de seguridad y secador de cabello, armario adicional amplio, una habitación separada con 2   |";
+                		Escribir"  | camas full, baño con ducha.                                                                                   |";
+                		Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+                		Escribir"  | Incluye:                                                                                                      |";
+                		Escribir"  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de    |";
+                		Escribir"  | nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños   |";
+                		Escribir"  | de 0 a 2 años sin recargos.                                                                                   |";
+            		Caso, =4
+                		Limpiar pantalla;
+                		Escribir"  |===============================================================================================================|";
+                		Escribir"  | Cálida y confortable habitación decorada con un estilo vanguardista, 100% libre de humo, Cama Lidotel Royal   |";
+                		Escribir"  | King, con reloj despertador, TV 32” HD Plasma con cable, 2 baños con ducha, cafetera eléctrica, nevera        |";
+                		Escribir"  | ejecutiva, caja electrónica de seguridad y secador de cabello, armario adicional amplio y área separada con 2 |";
+                		Escribir"  | sofá-cama individuales.                                                                                       |";
+                		Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+                		Escribir"  | Incluye:                                                                                                      |";
+                		Escribir"  | Desayuno Buffet en el Restaurant Le Nouveau, acceso inalámbrico a Internet (WIFI), Business Center, uso de    |";
+                		Escribir"  | nuestra exclusiva piscina, acceso a nuestro gimnasio, sillas y toldos en la playa, kit de vanidades y niños   |";
+                		Escribir"  | de 0 a 2 años sin recargos.                                                                                   |"
+            		Caso, =Sino
+                		Escribir"  | Opcion no valida.                         |";
+                		Escribir"  |===========================================|";
+                		delay(2000);
+        	Fin Segun;
+        	Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+        	Escribir"  | Precio: ", tipoHab[StrToInt(opp1)].precio, "$/noche."); gotoXY(115, WhereY-1); Escribir"|";
+        	Escribir"  |---------------------------------------------------------------------------------------------------------------|";
+        	Escribir"  | Presione cualquier tecla para continuar...                                                                    |";
+        	Escribir"  |===============================================================================================================|";
+        	readkey;
+        	Si (opp1[1] en ["1","2","3","4"]) entonces
+            		Repetir
+                		Limpiar pantalla;
+                		Escribir"  |=====================================|";
+                		Escribir"  | Desea confirmar su seleccion? (S/N) |";
+                		Escribir"  |=====================================|";
+                		opp2:=readkey;
+                		Segun (opp2) hacer
+                    			Caso, ='s', 'S'
+                        			Escribir"  | Habitacion confirmada exitosamente. |";
+                        			Escribir"  |=====================================|";
+                        			seleccionarTHab:=tipoHab[StrToInt(opp1)];
+                    			Caso, ='n', 'N'
+                        			Escribir"  | Seleccion cancelada.                |";
+                        			Escribir"  |=====================================|";
+                    			Caso, =Sino
+                        			Escribir"  | Opcion no valida.                   |";
+                        			Escribir"  |=====================================|";
+                		Fin Segun;
+                		delay(2000);
+            		Hasta (opp2[1] en ["s", "S", "n", "N"]);
+        	Fin Si;
+    	Hasta (opp1[1] en ["1","2","3","4"]) y (opp2[1] in ["s", "S"]);
+Fin funcion;
+
+procedimiento actualizarArchivo(var archivo: Text; nombreArchivo: string; reservaciones: arreglo de reservacion); //Sistema--->Archivos
+var i, j: integer;
+Inicio procedimiento
+	assign(archivo, nombreArchivo);
+    	rewrite(archivo);
+    	Para i:=0 hasta length(reservaciones)-1 hacer
+        	Escribir(archivo, "Datos de la reserva:");
+        	Escribir(archivo, "ID: ", reservaciones[i].id);
+        	Escribir(archivo, "Tipo de reserva: ", reservaciones[i].tReservacion);
+        	Escribir(archivo, "Tipo de habitacion: ", reservaciones[i].tHabitacion.nombre);
+        	Escribir(archivo, "Dias de estadia: ", reservaciones[i].diasEstadia);
+        	Escribir(archivo, "Precio total: ", (reservaciones[i].precioTotal):0:2, "$");
+        	Escribir(archivo, "Informacion de clientes:");
+        	Para j:=0 hasta length(reservaciones[i].clientesEnSesion)-1 hacer
+            		Escribir(archivo, "Adulto ", j+1, ":");
+            		Con reservaciones[i].clientesEnSesion[j] Hacer
+                		Escribir(archivo, "   Nombre: ", nombre);
+                		Escribir(archivo, "   Apellido: ", apellido);
+                		Escribir(archivo, "   Documento: ", documento);
+                		Escribir(archivo, "   E-mail: ", email);
+                		Escribir(archivo, "   Telefono: ", telefono);
+            		Fin Con;
+        	Fin Para;
+        	Para j:=0 hasta length(reservaciones[i].ninosEnSesion)-1 hacer
+            		Escribir(archivo, "Niño ", j+1, ":");
+            		Con reservaciones[i].ninosEnSesion[j] hacer
+                		Escribir(archivo, "   Nombre: ", nombre);
+                		Escribir(archivo, "   Apellido: ", apellido);
+                		Escribir(archivo, "   Edad: ", edad);
+            		Fin Con;
+        	Fin Para;
+        	Escribir(archivo, "----------------------------------------------------------------------------------");
+    	Fin Para;
+    	close(archivo);
+Fin procedimiento;
+
+funcion existeReservacion(var archivo: Text; nombreArchivo: string; ID: integer): boolean; //Busca reservacion por ID: true si existe
+var linea: string;
+Inicio funcion
+    	Si (FileExists(nombreArchivo)) Entonces
+        	assign(archivo, nombreArchivo);
+        	reset(archivo);
+        	Mientras no eof(archivo) hacer
+            		Leer(archivo, linea);
+            		Si (linea=("ID: " + IntToStr(ID))) entonces
+                		existeReservacion:=true;
+                		close(archivo);
+                		exit;
+            		Fin Si;
+        	Fin Mientras;
+        	existeReservacion:=false;
+        	close(archivo);
+    	Sino
+        	existeReservacion:=false;
+    	Fin Sino;
+	Fin Si;
+Fin funcion;
+
+funcion getReservacion(var archivo: Text; nombreArchivo: string; ID: integer): reservacion; //Consigue todos los datos de una reservacion
+var
+linea: string;
+encontrado, esAdulto, esNino: boolean;
+nAdultoActual, nNinoActual: integer;
+Inicio funcion
+    	encontrado:=false;
+    	esAdulto:=false;
+    	esNino:=false;
+    	nAdultoActual:=0;
+    	nNinoActual:=0;
+    	assign(archivo, nombreArchivo);
+    	reset(archivo);
+    	Mientras no eof(archivo) hacer
+        	Leer(archivo, linea);
+        	Si (linea=("ID: " + IntToStr(ID))) entonces
+            		getReservacion.id:= StrToInt(Copy(linea, 5, length(linea)));
+            		encontrado:=true;
+        	Fin Si;
+        	Si(encontrado) entonces
+            		Si (Copy(linea, 1, 16)=('Tipo de reserva:')) entonces
+                		getReservacion.tReservacion:= Copy(linea, 18, length(linea));
+            		Fin Si;
+            		Si (Copy(linea, 1, 19)=('Tipo de habitacion:')) entonces
+                		Segun (Copy(linea, 21, length(linea))) Hacer
+                    			Caso, =Sencilla:
+                        			getReservacion.tHabitacion:= tipoHab[1];
+                    			Caso, =Doble:
+                        			getReservacion.tHabitacion:= tipoHab[2];
+                    			Caso, =Family Room:
+                        			getReservacion.tHabitacion:= tipoHab[3];
+                    			Caso, =Suite:
+                        			getReservacion.tHabitacion:= tipoHab[4];
+                		Fin Segun;
+            		Fin Si;
+            		Si (Copy(linea, 1, 16)=('Dias de estadia:')) entonces
+                		getReservacion.diasEstadia:= StrToInt(Copy(linea, 18, length(linea)));
+            		Fin Si;
+            		Si (Copy(linea, 1, 13)=('Precio total:')) entonces
+                		Borrar(linea, 1, 14);
+                		Borrar(linea, length(linea), 1);
+                		getReservacion.precioTotal:= StrToFloat(linea);
+            		Si (Copy(linea, 1, 6)=('Adulto')) entonces
+                		Borrar(linea, 1, 7);
+                		Borrar(linea, length(linea), 1);
+                		Si(StrToInt(linea)>nAdultoActual) Entonces
+                    			nAdultoActual+=1;
+                    			setLength(getReservacion.clientesEnSesion, nAdultoActual);
+                    			esAdulto:=true;
+                    			esNino:=false;
+                		Fin Si;
+            		Fin Si;
+            		Si(esAdulto) entonces
+                		Si (Copy(linea, 1, 10)="   Nombre:") entonces
+                    			getReservacion.clientesEnSesion[nAdultoActual-1].nombre:=Copy(linea, 12, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 12)="   Apellido:") entonces
+                    			getReservacion.clientesEnSesion[nAdultoActual-1].apellido:=Copy(linea, 14, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 13)="   Documento:") entonces
+                    			getReservacion.clientesEnSesion[nAdultoActual-1].documento:=Copy(linea, 15, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 10)="  E-mail:") entonces
+                    			getReservacion.clientesEnSesion[nAdultoActual-1].email:=Copy(linea, 12, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 12)="   Telefono:") entonces
+                    			getReservacion.clientesEnSesion[nAdultoActual-1].telefono:=Copy(linea, 14, length(linea));
+                		Fin Si;
+            		Fin Si;
+            		Si (UnicodeString(Copy(linea, 1, 4))=("Niño")) entonces
+                		Borrar(linea, 1, 5);
+                		Borrar(linea, length(linea), 1);
+                		Si(StrToInt(linea)>nNinoActual) entonces
+                    			nNinoActual+=1;
+                    			setLength(getReservacion.ninosEnSesion, nNinoActual);
+                    			esNino:=true;
+                    			esAdulto:=false;
+                		Fin Si;
+            		Fin Si;
+            		Si (esNino) entonces
+                		Si (Copy(linea, 1, 10)="   Nombre:") entonces
+                    			getReservacion.ninosEnSesion[nNinoActual-1].nombre:=Copy(linea, 12, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 12)="   Apellido:") entonces
+                    			getReservacion.ninosEnSesion[nNinoActual-1].apellido:=Copy(linea, 14, length(linea));
+                		Fin Si;
+                		Si (Copy(linea, 1, 8)="   Edad:") entonces
+                    			getReservacion.ninosEnSesion[nNinoActual-1].edad:=StrToInt(Copy(linea, 10, length(linea)));
+                		Fin Si;
+            		Fin Si;
+            		Si (linea='----------------------------------------------------------------------------------') entonces
+                		close(archivo);
+                		exit;
+            		Fin Si;
+        	Fin Si;
+    	Fin Mientras;
+    	close(archivo);
+Fin funcion;
+
+procedimiento cargarArchivos(); //Archivos--->Sistema
+var idmax, i: integer;
+Inicio procedimiento
+    	Si (FileExists("Reservas Individual.txt")) entonces
+        	idmax:=determinarId(archivoIndividual, "Reservas Individual.txt")-1;
+        	Para i:=0 hasta idmax hacer
+            		Si (existeReservacion(archivoIndividual, "Reservas Individual.txt", i)) entonces
+                		setLength(resIndSis, length(resIndSis)+1);
+                		resIndSis[length(resIndSis)-1]:=getReservacion(archivoIndividual, "Reservas Individual.txt", i);
+            		Fin Si;
+        	Fin Para;
+    	Fin Si;
+    	Si (FileExists("Reservas Acompañado.txt")) entonces
+        	idmax:=determinarId(archivoAcompanado, "Reservas Acompañado.txt")-1;
+        	Para i:=0 hasta idmax hacer
+            		Si (existeReservacion(archivoAcompanado, "Reservas Acompañado.txt", i)) entonces
+                		setLength(resAcoSis, length(resAcoSis)+1);
+                		resAcoSis[length(resAcoSis)-1]:=getReservacion(archivoAcompanado, "Reservas Acompañado.txt", i);
+            		Fin Si;
+        	Fin Para;
+    	Fin Si;
+    	Si (FileExists("Reservas Grupo-Familia.txt")) entonces
+        	idmax:=determinarId(archivoGF, "Reservas Grupo-Familia.txt")-1;
+        	Para i:=0 hasta idmax hacer
+            		Si(existeReservacion(archivoGF, "Reservas Grupo-Familia.txt", i)) entonces
+                		setLength(resGFSis, length(resGFSis)+1);
+                		resGFSis[length(resGFSis)-1]:=getReservacion(archivoGF, "Reservas Grupo-Familia.txt", i);
+            		Fin Si;
+        	Fin Para;
+    	Fin Si;
+Fin procedimiento;
+
+procedimiento mostrarDatosReservacion(reservaciones: array of reservacion; pos: integer); //Muestra todos los datos de una reservacion
+var j: integer;
+Inicio procedimiento
+    	Limpiar pantalla;
+    	Escribir"  |======================================================================|";
+    	Escribir"  | Datos de la reserva:                                                 |";
+    	Escribir"  |======================================================================|";
+    	Con reservaciones[pos] hacer
+        	Escribir"  | ID: ", id); gotoXY(74, WhereY-1); Escribir"|";
+        	Escribir"  |----------------------------------------------------------------------|";
+        	Escribir"  | Tipo de reserva: ", tReservacion); gotoXY(74, WhereY-1); Escribir"|";
+        	Escribir"  |----------------------------------------------------------------------");
+        	Escribir"  | Tipo de habitacion: ", tHabitacion.nombre); gotoXY(74, WhereY-1); Escribir"|";
+        	Escribir"  |----------------------------------------------------------------------|";
+        	Escribir"  | Dias de estadia: ", diasEstadia); gotoXY(74, WhereY-1); Escribir"|";
+        	Escribir"  |----------------------------------------------------------------------|";
+        	Escribir"  | Precio total: ", (precioTotal):0:2, "$"); gotoXY(74, WhereY-1); Escribir"|";
+    	Fin Con;
+   	Escribir"  |======================================================================|";
+    	Escribir"  | Para ver la informacion de los clientes, presione cualquier tecla... |";
+    	Escribir"  |======================================================================|";
+    	readkey;
+    	Para j:=0 hasta length(reservaciones[pos].clientesEnSesion)-1 hacer
+        	Limpiar pantalla;
+        	Escribir"  |==============================================================================|";
+        	Escribir"  | Informacion de clientes:                                                     |";
+        	Escribir"  |==============================================================================|";
+        	Escribir"  | Adulto ", j+1, ":"); gotoXY(82, WhereY-1); Escribir"|";
+        	Con reservaciones[pos].clientesEnSesion[j] hacer
+            		Escribir"  |==============================================================================|";
+            		Escribir"  |   Nombre: ", nombre); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   Apellido: ", apellido); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   Documento: ", documento); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   E-mail: ", email); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   Telefono: ", telefono); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |==============================================================================|";
+        	Fin Con;
+        	Si((j<length(reservaciones[pos].clientesEnSesion)-1) o (length(reservaciones[pos].ninosEnSesion)>0)) entonces
+            		Escribir"  | Para ver la informacion de la siguiente persona, presione cualquier tecla... |";
+            		Escribir"  |==============================================================================|";
+        	Sino
+            		Escribir"  | Presione cualquier tecla para continuar...                                   |";
+            		Escribir"  |==============================================================================|";
+        	Fin Sino;
+		Fin Si;
+        	readkey;
+    	Fin Para;
+    	Para j:=0 hasta length(reservaciones[pos].ninosEnSesion)-1 hacer
+        	Limpiar pantalla;
+        	Escribir"  |==============================================================================|";
+        	Escribir"  | Informacion de clientes:                                                     |";
+        	Escribir"  |==============================================================================|";
+        	Escribir"  | Niño ", j+1, ":"); gotoXY(82, WhereY-1); Escribir"|";
+        	Con reservaciones[pos].ninosEnSesion[j] hacer
+            		Escribir"  |==============================================================================|";
+            		Escribir"  |   Nombre: ", nombre); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   Apellido: ", apellido); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |------------------------------------------------------------------------------|";
+            		Escribir"  |   Edad: ", edad); gotoXY(82, WhereY-1); Escribir"|";
+            		Escribir"  |==============================================================================|";
+        	end;
+        	Si(j<length(reservaciones[pos].ninosEnSesion)-1) entonces
+            		Escribir"  | Para ver la informacion de la siguiente persona, presione cualquier tecla... |";
+            		Escribir"  |==============================================================================|";
+        	Sino
+            		Escribir"  | Presione cualquier tecla para continuar...                                   |";
+            		Escribir"  |==============================================================================|";
+        	Fin Sino;
+		Fin Si;
+        	readkey;
+    	Fin Para;
+Fin procedimiento;
+
+procedimiento nuevaReservacion(var res: reservacion); //Para crear una nueva reservacion
+var
+opp, dEstadia, nAdultos, nNinos, nom, ape, tDoc, doc, correo, tel, age: string;
+i: integer;
+valido: boolean;
+Inicio procedimiento
+    	Repetir
+        	Limpiar pantalla;
+        	Escribir"  |=============================================|";
+        	Escribir"  | Por favor, indique el tipo de reservacion:  |";
+        	Escribir"  |---------------------------------------------|";
+        	Escribir"  | 1. Individual.                              |";
+        	Escribir"  |---------------------------------------------|";
+        	Escribir"  | 2. Acompañado.                              |";
+        	Escribir"  |---------------------------------------------|";
+        	Escribir"  | 3. Grupo-Familia.                           |";
+        	Escribir"  |=============================================|";
+        	opp:=readkey;
+        	Segun (opp) hacer
+            		Caso, =1
+                		setLength(res.clientesEnSesion, 1);
+                		res.id:=determinarId(archivoIndividual, "Reservas Individual.txt");
+            		Caso, =2
+                		setLength(res.clientesEnSesion, 2);
+                		res.id:=determinarId(archivoAcompanado, "Reservas Acompañado.txt");
+            		Caso, =3
+                		Repetir
+                    			valido:=true;
+                    			Limpiar pantalla;
+                    			Escribir"  |=================================|";
+                    			Escribir"  | Indique la cantidad de adultos: |";
+                    			Escribir"  |---------------------------------|";
+                    			Escribir"  |-> ";
+                    			Leer(nAdultos);
+                    			Si no esID(nAdultos) entonces
+                        			valido:=false;
+                    			Fin Si;
+                    			Si valido entonces
+                        			Si (StrToInt(nAdultos)<=0) entonces
+                            				valido:=false;
+                        			Fin  Si;
+                    			Fin Si;
+                    			Si no valido entonces
+                        			gotoXY(37, WhereY-1); Escribir"|";
+                        			Escribir"  |---------------------------------|";
+                        			Escribir"  | Ingrese una cantidad valida.    |";
+                        			Escribir"  |=================================|";
+                        			delay(2000);
+                    			Fin Si;
+                		Hasta valido;
+                		Repetir
+                    			Limpiar pantalla;
+                    			Escribir"  |=================================|";
+                    			Escribir"  | Indique la cantidad de niños:   |";
+                    			Escribir"  |---------------------------------|";
+                   			Escribir"  |-> ');
+                    			Leer(nNinos);
+                    			Si no esID(nNinos) entonces
+                        			gotoXY(37, WhereY-1); Escribir"|";
+                        			Escribir"  |---------------------------------|";
+                        			Escribir"  | Ingrese una cantidad valida.    |";
+                        			Escribir"  |=================================|";
+                        			delay(2000);
+                    			Fin Si;
+                		Hasta esID(nNinos);
+                		setLength(res.clientesEnSesion, StrToInt(nAdultos));
+                		setLength(res.ninosEnSesion, StrToInt(nNinos));
+                		res.id:=determinarId(archivoGF, "Reservas Grupo-Familia.txt");
+            		Caso, =Sino
+                		Escribir"  | Opcion no valida.                           |";
+                		Escribir"  |=============================================|";
+                		delay(2000);
+        	Fin Segun;
+    	Hasta (opp[1] en ["1", "2", "3"]);
+    	Repetir
+        	Limpiar pantalla;
+        	Escribir"  |======================================|";
+        	Escribir"  | Ingrese los dias de estadia:         |";
+        	Escribir"  |--------------------------------------|";
+        	Escribir"  |-> ";
+        	Leer(dEstadia);
+        	Si no esDia(dEstadia) entonces
+            		gotoXY(42, WhereY-1); Escribir"|";
+            		Escribir"  |--------------------------------------|";
+            		Escribir"  | Ingrese una cantidad de dias valida. |";
+            		Escribir"  |======================================|";
+            		delay(2000);
+        	Fin Si;
+    	Hasta esDia(dEstadia);
+    	Con res hacer
+        	tReservacion:=tReservaciones[StrToInt(opp)];
+        	tHabitacion:=seleccionarTHab();
+        	diasEstadia:=StrToInt(dEstadia);
+        	precioTotal:=tHabitacion.precio * StrToInt(dEstadia);
+    	Fin Con;
+    	Para i:=0 hasta length(res.clientesEnSesion)-1 hacer
+        	repetir
+            		Limpiar pantalla;
+            		Escribir"  |===========================================================================|";
+            		Escribir"  | Ingrese el nombre del adulto ", i+1, ":"); gotoXY(79, WhereY-1); Escribir"|";
+            		Escribir"  |---------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(nom);
+            		Si no esNombreApellido(nom) entonces
+                		gotoXY(79, WhereY-1); Escribir"|";
+                		Escribir"  |---------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales). |";
+                		Escribir"  |===========================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esNombreApellido(nom);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el apellido del adulto ", i+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(ape);
+            		Si no esNombreApellido(ape) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esNombreApellido(ape);
+        	Repetir
+            		Limpiar;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el tipo de documento del adulto " , i+1, " (V/E/J/G/P): "); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		tDoc:=readkey;
+            		Si no (tDoc[1] en ["V","v","E","e","J","j","G","g","P',"p"]) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un tipo de documento valido.                                       |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta (tDoc[1] in ["V","v","E","e","J","j","G","g","P',"p"]);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el numero de documento del adulto ", i+1, ": "); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(doc);
+            		Si no esDocumento(doc) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un numero de documento valido.                                     |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esDocumento(doc);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el correo del adulto ", i+1, ": "); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(correo);
+            		Si no esMail(correo) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un correo valido.                                                  |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esMail(correo);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el telefono del adulto ", i+1, ": "); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(tel);
+            		Si no esTel(tel) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un telefono valido (solo numeros).                                 |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esTel(tel);
+        	Con res.clientesEnSesion[i] hacer
+            		nombre:=nom;
+            		apellido:=ape;
+            		documento:=UpperCase(tDoc)+doc;
+            		email:=correo;
+            		telefono:=tel;
+        	Fin Con;
+    	Fin Para;
+    	Para i:=0 hasta length(res.ninosEnSesion)-1 hacer
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el nombre del niño ", i+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(nom);
+            		Si no esNombreApellido(nom) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).  |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esNombreApellido(nom);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese el apellido del niño ", i+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(ape);
+            		Si no esNombreApellido(ape) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esNombreApellido(ape);
+        	Repetir
+            		Limpiar pantalla;
+            		Escribir"  |============================================================================|";
+            		Escribir"  | Ingrese la edad del niño ", i+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+            		Escribir"  |----------------------------------------------------------------------------|";
+            		Escribir"  |-> ";
+            		Leer(age);
+            		Si no esEdad(age) entonces
+                		gotoXY(80, WhereY-1); Escribir"|";
+                		Escribir"  |----------------------------------------------------------------------------|";
+                		Escribir"  | Ingrese una edad valida (17 años o menos).                                 |";
+                		Escribir"  |============================================================================|";
+                		delay(2000);
+            		Fin Si;
+        	Hasta esEdad(age);
+        	Con res.ninosEnSesion[i] hacer
+            		nombre:=nom;
+            		apellido:=ape;
+            		edad:=StrToInt(age);
+        	Fin Con;
+    	Fin Para;
+    	Segun (opp) hacer
+        	Caso, =1
+            		setLength(resIndSis, length(resIndSis)+1);
+            		resIndSis[length(resIndSis)-1]:=res;
+            		actualizarArchivo(archivoIndividual, "Reservas Individual.txt", resIndSis);
+            		mostrarDatosReservacion(resIndSis, length(resIndSis)-1);
+        	Caso, =2
+            		setLength(resAcoSis, length(resAcoSis)+1);
+            		resAcoSis[length(resAcoSis)-1]:=res;
+            		actualizarArchivo(archivoAcompanado, "Reservas Acompañado.txt", resAcoSis);
+            		mostrarDatosReservacion(resAcoSis, length(resAcoSis)-1);
+        	Caso, =3
+            		setLength(resGFSis, length(resGFSis)+1);
+            		resGFSis[length(resGFSis)-1]:=res;
+            		actualizarArchivo(archivoGF, "Reservas Grupo-Familia.txt", resGFSis);
+            		mostrarDatosReservacion(resGFSis, length(resGFSis)-1);
+    	Fin Segun;
+Final procedimiento;
+
+procedimiento buscarReservacion(reservaciones: arreglo de reservacion; ID: integer); //Buscar reservacion por ID. Usa el procedimiento mostrar para desplegar la info de la reservacion conseguida
+var
+i, posActual: integer;
+opp: string;
+salir, mostrar: boolean;
+Inicio procedimiento
+    	Si(length(reservaciones)>0) entonces
+        	Para i:=0 hasta length(reservaciones)-1 hacer
+            		Si (reservaciones[i].id=ID) entonces
+                		posActual:=i;
+                		mostrarDatosReservacion(reservaciones, posActual);
+                		salir:=false;
+                		Repetir
+                    			Limpiar pantalla;
+                    			Escribir"  |===========================================================|";
+                    			Escribir"  | Indique la reservacion que desea ver ahora:               |";
+                    			Escribir"  |-----------------------------------------------------------|";
+                    			Escribir"  | 0. Salir al menu.   |   1. Anterior.   |   2. Siguiente.  |";
+                    			Escribir"  |===========================================================|";
+                    			opp:=readkey;
+                    			Segun (opp) hacer
+                        			Caso, =0
+                            				salir:=true;
+                            				mostrar:=false;
+                        			Caso, =1
+                            				Si(posActual=0) entonces
+                                				Escribir"  | No existe una reservacion anterior.                       |";
+                                				Escribir"  |===========================================================|";
+                                				mostrar:=false;
+                                				delay(2000);
+                            				Sino
+                                				posActual-=1;
+                                				mostrar:=true;
+                            				Fin Sino;
+							Fin Si;
+                        			Caso, =2
+                            				Si(posActual=(length(reservaciones)-1)) entonces
+                                				Escribir"  | No existe una reservacion siguiente.                      |";
+                                				Escribir"  |===========================================================|";
+                                				mostrar:=false;
+                                				delay(2000);
+                            				Sino
+                                				posActual+=1;
+                                				mostrar:=true;
+                            				Fin Sino;
+							Fin Si;
+                        			Caso, =Sino
+                            				Escribir"  | Dato no valido.                                           |";
+                            				Escribir"  |===========================================================|";
+                            				mostrar:=false;
+                            				delay(2000);
+                    			Fin Segun;
+                    			Si (mostrar) entonces
+                        			mostrarDatosReservacion(reservaciones, posActual);
+                    			Fin Si;
+                		Hasta salir;
+                		exit;
+            		Fin Si;
+        	Fin Para;
+        	Escribir"  |=====================================================|";
+        	Escribir"  | No se ha conseguido ninguna reservacion con esa ID. |";
+        	Escribir"  |=====================================================|";
+        	delay(2000);
+    	Sino
+        	Escribir"  |=====================================================|";
+        	Escribir"  | No se ha conseguido ninguna reservacion con esa ID. |";
+        	Escribir"  |=====================================================|";
+        	delay(2000);
+    	Fin Sino;
+	Fin Si;
+Fin procedimiento;
+
+procedimiento solicitarDatos(num: integer); //Pedir los datos necesarios para buscar y modificar (ambas usan los mismos parametros)
+Inicio procedimiento
+    	Repetir
+        	Escribir"  |================================================================|";
+        	Segun (num) hacer
+            		Caso, =1
+                		Escribir"  | Por favor, indique el tipo de reservacion que desea buscar:    |";
+            		Caso, =2
+                		Escribir"  | Por favor, indique el tipo de reservacion que desea modificar: |";
+        	Fin Segun;
+        	Escribir"  |----------------------------------------------------------------|";
+        	Escribir"  | 1. Individual.                                                 |";
+        	Escribir"  |----------------------------------------------------------------|";
+        	Escribir"  | 2. Acompañado.                                                 |";
+        	Escribir"  |----------------------------------------------------------------|";
+        	Escribir"  | 3. Grupo-Familia.                                              |";
+        	Escribir"  |================================================================|";
+        	op2:=readkey;
+        	Segun (op2) hacer
+            		Caso, =1
+                		resSel:= resIndSis;
+            		Caso, =2
+                		resSel:= resAcoSis;
+            		Caso, =3
+                		resSel:= resGFSis;
+            		Caso, =Sino
+                		Escribir"  | Opcion no valida                                               |";
+                		Escribir"  |================================================================|";
+                		delay(2000);
+        	Fin Segun;
+    	Hasta (op2[1] en ["1","2","3"]);
+    	Repetir
+        	Limpiar pantalla;
+        	Escribir"  |=============================================================|";
+        	Escribir"  | Por favor, indique el ID de la reserva que desea buscar:    |";
+        	Escribir"  |-------------------------------------------------------------|";
+        	Escribir"  |-> ";
+        	Leer(IDSel);
+        	Si no esID(IDSel) entonces
+            		gotoXY(65, WhereY-1); Escribir"|";
+            		Escribir"  |-------------------------------------------------------------|";
+            		Escribir"  | Ingrese un ID valido.                                       |";
+            		Escribir"  |=============================================================|";
+            		delay(2000);
+        	Fin Si;
+    	Hasta esID(IDSel);
+Fin procedimiento;
+
+procedimiento modificarReservacion(var reservaciones: arreglo de reservacion; ID: integer); //para modificar una reservacion existente, la busca por ID
+var
+i, j: integer;
+opp, dias, nom, ape, tDoc, doc, correo, tel, age: string;
+next: boolean;
+Inicio procedimiento
+	Si(length(reservaciones)>0) entonces
+        	Para i:=0 hasta length(reservaciones)-1 hacer
+            		Si (reservaciones[i].id=ID) entonces
+                		Con reservaciones[i] hacer
+                    			next:=false;
+                    			Repetir
+                        			Limpiar pantalla;
+                        			Escribir"  |=======================================================|";
+                        			Escribir"  | Datos de la reserva (Indique el que desea modificar): |";
+                        			Escribir"  |=======================================================|";
+                        			Escribir"  | 1. Tipo de habitacion: ", tHabitacion.nombre); gotoXY(59, WhereY-1); Escribir"|";
+                        			Escribir"  |-------------------------------------------------------|";
+                        			Escribir"  | 2. Dias de estadia: ", diasEstadia); gotoXY(59, WhereY-1); Escribir"|";
+                        			Escribir"  |-------------------------------------------------------|";
+                        			Escribir"  | 3. Siguiente.                                         |";
+                        			Escribir"  |-------------------------------------------------------|";
+                        			Escribir"  | 4. Salir al menu.                                     |";
+                        			Escribir"  |=======================================================|";
+                        			opp:=readkey;
+                        			Segun (opp) hacer
+                            				Caso, =1
+                                				tHabitacion:=seleccionarTHab();
+                                				precioTotal:=tHabitacion.precio*diasEstadia;
+                            				Caso, =2
+                                				Repetir
+                                    					Limpiar pantalla;
+                                    					Escribir"  |=======================================================|";
+                                    					Escribir"  | Ingrese la cantidad de dias de su estadia:            |";
+                                    					Escribir"  |-------------------------------------------------------|";
+                                    					Escribir"  |-> ";
+                                    					Leer(dias);
+                                    					Si no esDia(dias) entonces
+                                        					gotoXY(59, WhereY-1); Escribir"|";
+                                        					Escribir"  |-------------------------------------------------------|";
+                                        					Escribir"  | Ingrese una cantidad de dias valida.                  |";
+                                        					Escribir"  |=======================================================|";
+                                        					delay(2000);
+                                    					Fin Si;
+                                				Hasta esDia(dias);
+                                				diasEstadia:=StrToInt(dias);
+                                				precioTotal:=tHabitacion.precio*diasEstadia;
+                            				Caso, =3
+                                				next:=true;
+                            				Caso, =4
+                                				exit;
+                            				Caso, =Sino
+                                				Escribir"  | Dato no valido.                                       |";
+                                				Escribir"  |=======================================================|";
+                                				delay(2000);
+                        			Fin Segun;
+                    			Hasta next;
+                    			Para j:=0 hasta length(clientesEnSesion)-1 hacer
+                        			next:=false;
+                        			Repetir
+                            				Limpiar pantalla;
+                            				Escribir"  |============================================================|";
+                            				Escribir"  | Datos del adulto ", j+1, " (Indique el que desea modificar):"); gotoXY(64, WhereY-1); Escribir"|";
+                            				Escribir"  |============================================================|";
+                            				Con clientesEnSesion[j] hacer
+                                				Escribir"  | 1. Nombre: ", nombre); gotoXY(64, WhereY-1); Escribir"|";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 2. Apellido: ", apellido); gotoXY(64, WhereY-1); Escribir"|";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 3. Documento: ", documento); gotoXY(64, WhereY-1); Escribir"|";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 4. E-mail: ", email); gotoXY(64, WhereY-1); Escribir"|";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 5. Telefono: ", telefono); gotoXY(64, WhereY-1); Escribir"|";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 6. Siguiente.                                              |";
+                                				Escribir"  |------------------------------------------------------------|";
+                                				Escribir"  | 7. Salir al menu.                                          |";
+                                				Escribir"  |============================================================|";
+                                				opp:=readkey;
+                                				Segun (opp) hacer
+                                    					Caso, =1
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |===========================================================================|";
+                                            						Escribir"  | Ingrese el nombre del adulto ", j+1, ":"); gotoXY(79, WhereY-1); Escribir"|";
+                                            						Escribir"  |---------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(nom);
+                                            						Si no esNombreApellido(nom) entonces
+                                               							gotoXY(79, WhereY-1); Escribir"|";
+                                               							Escribir"  |---------------------------------------------------------------------------|";
+                                               							Escribir"  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales). |";
+                                               							Escribir"  |===========================================================================|";
+                                               							delay(2000);
+                                         						Fin Si;
+                                       						Hasta esNombreApellido(nom);
+                                        					nombre:=nom;
+                                    					Caso, =2
+                                       						Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el apellido del adulto ", j+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                           						Escribir"  |-> ";
+                                            						Leer(ape);
+                                            						Si no esNombreApellido(ape) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|";
+                                                						Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						end;
+                                        					Hasta esNombreApellido(ape);
+                                        					apellido:=ape;
+                                    					Caso, =3
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el tipo de documento del adulto " , j+1, " (V/E/J/G/P): "); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                           						Escribir"  |-> ";
+                                            						tDoc:=readkey;
+                                            						Si no (tDoc[1] en ["V","v","E","e","J","j","G","g","P","p"]) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                               							Escribir"  | Ingrese un tipo de documento valido.                                       |";
+                                               							Escribir"  |============================================================================|";
+                                               							delay(2000);
+                                            						Fin Si;
+                                        					Hasta (tDoc[1] in ["V","v","E","e","J","j","G","g","P","p"]);
+                                       						Repetir
+                                           						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el numero de documento del adulto", j+1, ":"); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(doc);
+                                            						Si no esDocumento(doc) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese un numero de documento valido.                                     |";
+                                                						Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						Fin Si;
+                                        					Hasta (esDocumento(doc));
+                                        					documento:=UpperCase(tDoc)+doc;
+                                    					Caso, =4
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el correo del adulto ', j+1, ':'); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(correo);
+                                            						Si no esMail(correo) entonces
+                                               							gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                               							Escribir"  | Ingrese un correo valido.                                                  |";
+                                                						Escribir"  |============================================================================|";
+                                               							delay(2000);
+                                            						Fin Si;
+                                        					Hasta esMail(correo);
+                                       						email:=correo;
+                                    					Caso, =5
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el telefono del adulto ', j+1, ':'); gotoXY(80, WhereY-1);Escribir"|";
+                                           						Escribir"  |----------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(tel);
+                                            						Si no esTel(tel) entonces
+                                               							gotoXY(80, WhereY-1); Escribir"|";
+                                               							Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese un telefono valido (solo numeros).                                 |";
+                                                						Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						Fin Si;
+                                        					Hasta esTel(tel);
+                                        					telefono:=tel;
+                                    					Caso, =6
+                                       						next:=true;
+                                    					Caso, =7
+                                        					exit;
+                                    					Caso, =Sino
+                                       						Escribir"  | Dato no valido.                                            |";
+                                       						Escribir"  |============================================================|";
+                                       						delay(2000);
+                               					Fin Segun;
+                            				Fin Con;
+                        			Hasta next;
+                    			Fin Para;
+                    			Para j:=0 hasta length(ninosEnSesion)-1 hacer
+                        			next:=false;
+                        			Repetir
+                            				Limpiar pantalla;
+                            				Escribir"  |============================================================================|');
+                            				Escribir"  | Datos del niño ", j+1, " (Indique el que desea modificar):"); gotoXY(80, WhereY-1); Escribir"|");
+                            				Escribir"  |============================================================================|');
+                            				Con ninosEnSesion[j] Hacer
+                                				Escribir"  | 1. Nombre: ", nombre); gotoXY(80, WhereY-1); Escribir"|";
+                                				Escribir"  |----------------------------------------------------------------------------|";
+                                				Escribir"  | 2. Apellido: ", apellido); gotoXY(80, WhereY-1); Escribir"|";
+                                				Escribir"  |----------------------------------------------------------------------------|";
+                                				Escribir"  | 3. Edad: ", edad); gotoXY(80, WhereY-1); Escribir"|";
+                               					Escribir"  |----------------------------------------------------------------------------|";
+                                				Escribir"  | 4. Siguiente.                                                              |";
+                                				Escribir"  |----------------------------------------------------------------------------|";
+                                				Escribir"  | 5. Salir al menu.                                                          |";
+                                				Escribir"  |============================================================================|";
+                                				opp:=readkey;
+                                				Segun (opp) hacer
+                                    					Caso, =1
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el nombre del niño ", j+1, ": "); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(nom);
+                                            						Si no esNombreApellido(nom) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese un nombre valido (Sin numeros, espacios o caracteres especiales).  |";
+                                               							Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						Fin Si;
+                                        					Hasta esNombreApellido(nom);
+                                        					nombre:=nom;
+                                    					Caso, =2
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese el apellido del niño ", j+1, ": "); gotoXY(80, WhereY-1); Escribir"|";
+                                            						Escribir"  |----------------------------------------------------------------------------|";
+                                            						Escribir"  |-> ";
+                                            						Leer(ape);
+                                            						Si no esNombreApellido(ape) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|";
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese un apellido valido (Sin numeros, espacios o caracteres especiales).|";
+                                                						Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						Fin Si;
+                                        					Hasta esNombreApellido(ape);
+                                        					apellido:=ape;
+                                    					Caso, =3
+                                        					Repetir
+                                            						Limpiar pantalla;
+                                            						Escribir"  |============================================================================|";
+                                            						Escribir"  | Ingrese la edad del niño ", j+1, ":"); gotoXY(80, WhereY-1); Escribir"|");
+                                            						Escribir"  |----------------------------------------------------------------------------|");
+                                            						Escribir"  |-> ");
+                                            						Leer(age);
+                                            						Si no esEdad(age) entonces
+                                                						gotoXY(80, WhereY-1); Escribir"|';
+                                                						Escribir"  |----------------------------------------------------------------------------|";
+                                                						Escribir"  | Ingrese una edad valida (17 años o menos).                                 |";
+                                                						Escribir"  |============================================================================|";
+                                                						delay(2000);
+                                            						Fin Si;
+                                        					Hasta esEdad(age);
+                                        					edad:=StrToInt(age);
+                                    					Caso, =4
+                                        					next:=true;
+                                    					Caso, =5
+                                        					exit;
+                                    					Caso, =Sino
+                                        					Escribir"  | Dato no valido.                                                            |";
+                                        					Escribir"  |============================================================================|";
+                                        					delay(2000);
+                                				Fin Segun;
+                            				Fin Con;
+                        			Hasta next;
+                    			Fin Para;
+                		Fin Con;
+            		Sino
+                		Si (i=length(reservaciones)-1) entonces
+                    			Escribir"  |=========================================================|";
+                    			Escribir"  | No se ha conseguido ninguna reservacion con esa ID.     |";
+                    			Escribir"  |=========================================================|";
+                    			delay(2000);
+                		Fin Si;
+            		Fin Sino;
+			Fin Si;
+        	Fin Para;
+    	Sino
+        	Escribir"  |=========================================================|";
+        	Escribir"  | No se ha conseguido ninguna reservacion con esa ID.     |";
+        	Escribir"  |=========================================================|";
+        	delay(2000);
+    	Fin Sino;
+	Fin Si;
+Fin procedimiento;
+
+//MAIN
+Inicio
+    	Limpiar pantalla;
+    	cargarArchivos();
+    	Escribir"  |=============================================================|";
+    	Escribir"  | Bienvenido al sistema del Hotel Lidotel Boutique Margarita! |";
+    	Escribir"  |-------------------------------------------------------------|";
+    	Escribir"  | Presione cualquier tecla para continuar...                  |";
+    	Escribir"  |=============================================================|";
+    	readkey;
+    	Repetir
+        	Limpiar pantalla;
+        	Escribir"  |===============================================|";
+        	Escribir"  | Por favor indique la operacion a realizar:    |";
+        	Escribir"  |-----------------------------------------------|";
+        	Escribir"  | 1. Nuevo cliente.                             |";
+        	Escribir"  |-----------------------------------------------|";
+        	Escribir"  | 2. Buscar reservacion.                        |";
+        	Escribir"  |-----------------------------------------------|";
+        	Escribir"  | 3. Modificar reservacion.                     |";
+        	Escribir"  |-----------------------------------------------|";
+        	Escribir"  | 4. Salir.                                     |";
+        	Escribir"  |===============================================|";
+        	op1:=readkey;
+        	Segun (op1) hacer
+            		Caso, =1
+                		nuevaReservacion(reservacionActual); //Crear reservacion
+            		Caso, =2
+                		solicitarDatos(1);
+                		buscarReservacion(resSel, StrToInt(IDSel)); //Buscar reservacion
+            		Caso, =3
+                		solicitarDatos(2);
+                		modificarReservacion(resSel, StrToInt(IDSel)); //Modificar reservacion
+                		Segun (op2) hacer //Actualizar archivos con los cambios
+                    			Caso, =1
+                        			actualizarArchivo(archivoIndividual, "Reservas Individual.txt", resSel);
+                    			Caso, =2
+                        			actualizarArchivo(archivoAcompanado, "Reservas Acompañado.txt", resSel);
+                    			Caso, =3
+                        			actualizarArchivo(archivoGF, "Reservas Grupo-Familia.txt", resSel);
+                		Fin Segun;
+            		Caso, =4 //Salir
+                		Limpiar pantalla;
+                		Escribir"  |===============================================|";
+                		Escribir"  |  Gracias por usar el sistema, vuelva pronto!  |";
+                		Escribir"  |===============================================|";
+                		delay(3000);
+            		Caso, =Sino
+                		Escribir"  | Opcion no valida.                             |";
+                		Escribir"  |===============================================|";
+                		delay(2000);
+        	Fin Segun;
+    	Hasta (op1[1]='4');
+Fin.
